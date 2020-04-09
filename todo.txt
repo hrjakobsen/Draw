@@ -1,0 +1,6 @@
+allow several canvases
+show connected users
+set name
+save to disk on server
+tabs in canvas
+remove Users NotHere

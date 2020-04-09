@@ -1,0 +1,82 @@
+{{define "frontpage"}}
+    <html>
+    <meta charset="UTF-8">
+    <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"
+                integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.2/paper-full.js"
+                integrity="sha256-0UCYTfEkQlxl7Fy99RM2kU+ScyrKrW005WKxkeu3To0=" crossorigin="anonymous"></script>
+        <script src="/js/frontpage.js"></script>
+        <link rel="stylesheet" type="text/css" href="/css/frontpage.css">
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css"
+              integrity="sha256-h20CPZ0QyXlBuAw7A+KluUYx/3pK+c7lYEpqLTlxjYQ=" crossorigin="anonymous"/>
+
+
+        <!-- bootstrap -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+              integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+              crossorigin="anonymous">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+                integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+                crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+                integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+                crossorigin="anonymous"></script>
+
+        <title>draw</title>
+    </head>
+
+    <body onload="run()">
+    <div class="canvas-container">
+        <canvas id="draw-canvas" resize>
+        </canvas>
+        <div id="UIModes">
+            <button type="button" class="btn btn-primary" id="UIPanMode">
+                <i class="fas fa-hand-rock fa-2x"></i>
+            </button>
+            <button type="button" class="btn btn-primary active" id="UIDrawMode">
+                <i class="fas fa-paint-brush fa-2x"></i>
+            </button>
+            <button type="button" class="btn btn-primary" id="UISelectMode">
+                <i class="fas fa-vector-square fa-2x"></i>
+            </button>
+            <button type="button" class="btn btn-primary" id="UIMoveSelectedMode">
+                <i class="fas fa-arrows-alt fa-2x"></i>
+            </button>
+        </div>
+    </div>
+    <div id="DrawSettings">
+        <div class="card">
+            <div class="card-body">
+                <div id="ColorButtons">
+                    <button id="SelectBlack" class="btn ml-1 btn-secondary">
+                        <i class="fas fa-check centered" style="display: flex;"></i>
+                    </button>
+                    <button id="SelectBlue" class="btn ml-1 btn-secondary">
+                        <i class="fas fa-check centered" style="display: none"></i>
+                    </button>
+                    <button id="SelectGreen" class="btn ml-1 btn-secondary">
+                        <i class="fas fa-check centered" style="display: none"></i>
+                    </button>
+                    <button id="SelectRed" class="btn ml-1 btn-secondary">
+                        <i class="fas fa-check centered" style="display: none"></i>
+                    </button>
+                </div>
+                <div class="btn-toolbar" role="toolbar">
+                    <div class="input-group mt-2">
+                        <input type="number" min="1" max="10" value="2" class="form-control text-right"
+                               id="StrokeWidthNumber">
+                        <div class="w-75 centered">
+                            <input type="range" min="1" max="10" value="2" class="custom-range ml-2"
+                                   id="StrokeWidthRange">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    </body>
+    </html>
+{{end}}

@@ -42,7 +42,7 @@ canvas {
     font-size: 14px;
 }
 
-#UIModes button {
+#SettingsButton, #UIModes button {
     height: 70px;
     width: 70px;
     margin: 4px;
@@ -54,6 +54,12 @@ canvas {
     right: 20px;
     bottom: 10px;
     width: 300px;
+}
+
+#UserSettings {
+    position: absolute;
+    right: 20px;
+    top: 20px;
 }
 
 #SelectBlue {
@@ -96,3 +102,14 @@ input[type=number]::-webkit-outer-spin-button {
     margin: 0;
 }
 
+
+
+input[type=checkbox]
+{
+    /* Double-sized Checkboxes */
+    -ms-transform: scale(2); /* IE */
+    -moz-transform: scale(2); /* FF */
+    -webkit-transform: scale(2); /* Safari and Chrome */
+    -o-transform: scale(2); /* Opera */
+    padding: 10px;
+}

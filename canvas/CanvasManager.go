@@ -67,7 +67,7 @@ func (m *Manager) handleStartCanvas(newCanvas *StartCanvasStructure) {
 	if _, ok := m.runningCanvases[newCanvas.Name]; !ok {
 		m.runningCanvases[newCanvas.Name] = CreateCanvas(newCanvas.Name, newCanvas.ID, m.onCanvasClose)
 	} else {
-		fmt.Println("canvas not running")
+		fmt.Println("canvas already running")
 	}
 	newCanvas.Done <- true
 }
@@ -84,7 +84,7 @@ func (m *Manager) handleJoin(con *JoinCanvasStructure) {
 			canvas.newConnections <- con.Socket
 			fmt.Println("restarting canvas", con.Name)
 		} else {
-			fmt.Println("canvas not running")
+			fmt.Println("canvas join not running", con.Name)
 			_ = con.Socket.Close()
 		}
 	}

@@ -2,36 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b629b0fb-2f5e-4d01-b8ce-487c41eec661" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DBSetupNotes/InitDB.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Database/Database.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/canvas/NullUser.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/canvas/Userlike.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ts/Packets/ServerPackets/ServerRemovedUserPacket.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DB/InitDB.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Templates/frontpage.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/frontpage.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/canvas/Canvas.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/Canvas.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/canvas/CanvasManager.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/CanvasManager.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/canvas/Packet/ClientPackets.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/Packet/ClientPackets.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/canvas/Packet/ServerPackets.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/Packet/ServerPackets.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/canvas/User.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/User.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/canvas/util/Color.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/util/Color.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/canvas/util/Line.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/util/PacketLine.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/canvas/util/Point.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/util/Point.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/frontpage.css" beforeDir="false" afterPath="$PROJECT_DIR$/css/frontpage.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/html/frontpage.go" beforeDir="false" afterPath="$PROJECT_DIR$/html/frontpage.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/frontpage.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/frontpage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ts/Canvas/Root.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Canvas/Root.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ts/Canvas/SelectionManager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Canvas/SelectionManager.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ts/Canvas/User.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Canvas/User.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ts/Canvas/Users.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Canvas/Users.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ts/Packets/ServerPackets/ServerPacket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Packets/ServerPackets/ServerPacket.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ts/Packets/ServerPackets/ServerSetStrokeColor.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Packets/ServerPackets/ServerSetStrokeColorPacket.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ts/Packets/WebSocketHandler.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Packets/WebSocketHandler.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ts/util/Line.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/util/Line.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -143,7 +114,7 @@
       <workItem from="1586788206190" duration="945000" />
       <workItem from="1586789161937" duration="24742000" />
       <workItem from="1586851152295" duration="11272000" />
-      <workItem from="1586884214852" duration="682000" />
+      <workItem from="1586884214852" duration="2745000" />
     </task>
     <servers />
   </component>
@@ -248,10 +219,10 @@
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
     <state x="2452" y="510" width="840" height="1034" key="run.anything.popup/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586882734554" />
-    <state x="539" y="1085" width="840" height="1034" key="search.everywhere.popup" timestamp="1586884870734">
+    <state x="539" y="1085" width="840" height="1034" key="search.everywhere.popup" timestamp="1586887409943">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
-    <state x="539" y="1085" width="840" height="1034" key="search.everywhere.popup/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586884870734" />
+    <state x="539" y="1085" width="840" height="1034" key="search.everywhere.popup/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586887409943" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

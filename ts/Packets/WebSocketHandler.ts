@@ -1,7 +1,7 @@
 
 class WebSocketHandler
 {
-    private static IP = "ws://localhost:5011/ws";
+    private static IP = "ws://167.172.190.193:5011/ws";
 
     private socket: WebSocket | null = null;
     private isConnectionOpen = false;

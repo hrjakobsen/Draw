@@ -774,7 +774,7 @@ class WebSocketHandler {
         }
     }
 }
-WebSocketHandler.IP = "ws://localhost:5011/ws";
+WebSocketHandler.IP = "ws://167.172.190.193:5011/ws";
 class clientAddPointsPath {
     constructor(id, points) {
         this.id = id;

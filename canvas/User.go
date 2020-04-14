@@ -2,19 +2,12 @@ package canvas
 
 import (
 	"fmt"
+	"github.com/MikkelKettunen/Draw/Database"
 	"github.com/MikkelKettunen/Draw/canvas/Packet"
 	"github.com/MikkelKettunen/Draw/canvas/util"
 	"github.com/gorilla/websocket"
 	"time"
 )
-
-type Line struct {
-	points      []util.Point
-	ownerID     uint8
-	lineID      int32
-	strokeWidth uint8
-	strokeColor util.Color
-}
 
 type User struct {
 	connection            *websocket.Conn
@@ -29,9 +22,21 @@ type User struct {
 
 	root *Canvas
 
-	id uint8
+	userID uint8
 
-	lines []*Line
+	lines []*UserLine
+}
+
+type UserLine struct {
+	points      []util.Point
+	ownerID     uint8
+	lineID      int32
+	strokeWidth uint8
+	strokeColor util.Color
+
+	deleted            bool
+	databaseID         *int
+	haveDatabaseUpdate bool
 }
 
 type UserPacket struct {
@@ -54,9 +59,9 @@ func CreateUser(con *websocket.Conn, userID uint8, packetReceivedChannel chan *U
 
 		root: root,
 
-		id: userID,
+		userID: userID,
 
-		lines: make([]*Line, 0),
+		lines: make([]*UserLine, 0),
 	}
 
 	go u.readSocket()
@@ -153,42 +158,43 @@ func (u *User) beginPath(packet *Packet.ClientBeginPathPacket) {
 		return
 	}
 
-	line = &Line{
-		points:      make([]util.Point, 1),
-		ownerID:     u.id,
-		lineID:      packet.Id,
-		strokeWidth: packet.StrokeWidth,
-		strokeColor: packet.StrokeColor,
+	line = &UserLine{
+		points:             []util.Point{packet.Pos},
+		ownerID:            u.userID,
+		lineID:             packet.Id,
+		strokeWidth:        packet.StrokeWidth,
+		strokeColor:        packet.StrokeColor,
+		databaseID:         nil,
+		haveDatabaseUpdate: false,
+		deleted:            false,
 	}
-
-	line.points[0] = packet.Pos
 
 	u.lines = append(u.lines, line)
 
 	response := &Packet.ServerBeginPathPacket{
-		UserID:      u.id,
+		UserID:      u.userID,
 		LineID:      line.lineID,
 		Pos:         packet.Pos,
 		StrokeWidth: packet.StrokeWidth,
 		StrokeColor: packet.StrokeColor,
 	}
 
-	u.root.sendPacketToAllExcept(response, u.id)
+	u.root.sendPacketToAllExcept(response, u.userID)
 
-	fmt.Println("user: ", u.id, "  began line:", line.lineID)
+	fmt.Println("user: ", u.userID, "  began line:", line.lineID)
 }
 
 func (u *User) endPath(packet *Packet.ClientEndPathPacket) {
 	l := u.findLine(packet.Id)
 	if l == nil {
-		fmt.Println("endPath failed. user ", u.id, " with line", packet.Id)
+		fmt.Println("endPath failed. user ", u.userID, " with line", packet.Id)
 		return
 	}
 	response := &Packet.ServerEndPathPacket{
-		UserID:   u.id,
+		UserID:   u.userID,
 		LineIDID: packet.Id,
 	}
-	u.root.sendPacketToAllExcept(response, u.id)
+	u.root.sendPacketToAllExcept(response, u.userID)
 }
 
 func (u *User) addPointsPath(packet *Packet.ClientAddPointsPathPacket) {
@@ -198,18 +204,19 @@ func (u *User) addPointsPath(packet *Packet.ClientAddPointsPathPacket) {
 		return
 	}
 
+	//line.AddPoints(packet.Points)
 	line.points = append(line.points, packet.Points...)
 
 	response := &Packet.ServerAddPointsPathPacket{
-		UserID: u.id,
+		UserID: u.userID,
 		LineID: packet.Id,
 		Path:   packet.Points,
 	}
 
-	u.root.sendPacketToAllExcept(response, u.id)
+	u.root.sendPacketToAllExcept(response, u.userID)
 }
 
-func (u *User) findLine(lineID int32) *Line {
+func (u *User) findLine(lineID int32) *UserLine {
 	for _, l := range u.lines {
 		if l.lineID == lineID {
 			return l
@@ -221,8 +228,11 @@ func (u *User) findLine(lineID int32) *Line {
 func (u *User) sendLinesTo(user *User) {
 	queue := make([]Packet.ServerPacket, 0)
 	for _, l := range u.lines {
+		if l.deleted {
+			continue
+		}
 		create := &Packet.ServerBeginPathPacket{
-			UserID:      u.id,
+			UserID:      u.userID,
 			LineID:      l.lineID,
 			Pos:         l.points[0],
 			StrokeWidth: l.strokeWidth,
@@ -232,31 +242,16 @@ func (u *User) sendLinesTo(user *User) {
 		// user.sendPacket(create)
 		queue = append(queue, create)
 
-		// we should split this into several packets
 		p := l.points[1:]
-		for len(p) > 255 {
-			update := &Packet.ServerAddPointsPathPacket{
-				UserID: u.id,
-				LineID: l.lineID,
-				Path:   p[:255],
-			}
-			user.sendPacket(update)
-			p = p[255:]
-			queue = append(queue, update)
+		update := &Packet.ServerAddPointsPathPacket{
+			UserID: u.userID,
+			LineID: l.lineID,
+			Path:   p,
 		}
-
-		if len(p) > 0 {
-			update := &Packet.ServerAddPointsPathPacket{
-				UserID: u.id,
-				LineID: l.lineID,
-				Path:   p,
-			}
-			user.sendPacket(update)
-			queue = append(queue, update)
-		}
+		queue = append(queue, update)
 
 		end := &Packet.ServerEndPathPacket{
-			UserID:   u.id,
+			UserID:   u.userID,
 			LineIDID: l.lineID,
 		}
 
@@ -287,20 +282,22 @@ func (u *User) close() {
 }
 
 func (u *User) getID() uint8 {
-	return u.id
+	return u.userID
 }
 
 func (u *User) deleteLine(lineID int32) bool {
 	found := false
-	for i, l := range u.lines {
+	for _, l := range u.lines {
 		if l.lineID == lineID {
-			u.lines = append(u.lines[:i], u.lines[i+1:]...)
+			// u.lines = append(u.lines[:i], u.lines[i+1:]...)
+			l.deleted = true
+			l.haveDatabaseUpdate = true
 			found = true
 			break
 		}
 	}
 	if !found {
-		fmt.Println("failed to delete line ", lineID, " for user ", u.id)
+		fmt.Println("failed to delete line ", lineID, " for user ", u.userID)
 	}
 	return found
 }
@@ -308,8 +305,9 @@ func (u *User) deleteLine(lineID int32) bool {
 func (u *User) moveLine(lineID int32, delta util.Point) bool {
 	line := u.findLine(lineID)
 	if line != nil {
-		for i, p := range line.points {
-			line.points[i] = p.Add(delta)
+		points := line.points
+		for i, p := range points {
+			points[i] = p.Add(delta)
 		}
 	}
 	return line != nil
@@ -322,6 +320,7 @@ func (u *User) setStrokeSize(lineID int32, size uint8) {
 		return
 	}
 	l.strokeWidth = size
+	l.haveDatabaseUpdate = true
 }
 
 func (u *User) setStrokeColor(lineID int32, color util.Color) {
@@ -331,4 +330,40 @@ func (u *User) setStrokeColor(lineID int32, color util.Color) {
 		return
 	}
 	l.strokeColor = color
+	l.haveDatabaseUpdate = true
+}
+
+func (u *User) save(canvasID int) {
+	if len(u.lines) > 0 {
+		for _, l := range u.lines {
+			if l.databaseID != nil && !l.haveDatabaseUpdate {
+				continue
+			}
+			lineUpdate := Database.UpdateLine{
+				StrokeColor: l.strokeColor,
+				StrokeWidth: l.strokeWidth,
+				DatabaseID:  l.databaseID,
+				Points:      l.points,
+				Deleted:     l.deleted,
+			}
+
+			Database.SaveLine(canvasID, &lineUpdate)
+
+			if l.databaseID == nil {
+				l.databaseID = lineUpdate.DatabaseID
+			}
+			l.haveDatabaseUpdate = false
+		}
+		newLines := make([]*UserLine, 0)
+		for _, l := range u.lines {
+			if !l.deleted {
+				newLines = append(newLines, l)
+			}
+		}
+		u.lines = newLines
+	}
+}
+
+func (c *User) id() uint8 {
+	return c.userID
 }

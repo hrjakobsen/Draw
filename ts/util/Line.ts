@@ -8,6 +8,14 @@ class DrawLine {
         this.lineID = lineID;
         this.userID = userID;
     }
+
+    UpdateUserID(userID: number): DrawLine {
+        return new DrawLine(this.path, this.lineID, userID)
+    }
+
+    updateLineID(lineID: number): DrawLine {
+        return new DrawLine(this.path, lineID, this.userID)
+    }
 }
 
 class UserLine extends DrawLine {

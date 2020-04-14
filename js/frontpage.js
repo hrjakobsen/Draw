@@ -263,6 +263,9 @@ class Root {
             case 8 /* SetStrokeColor */:
                 this.handleSetStrokeColor(pck);
                 break;
+            case 9 /* RemovedUser */:
+                this.handleRemovedUser(pck);
+                break;
         }
     }
     handleSetUserID(pck) {
@@ -299,6 +302,8 @@ class Root {
             var _a;
             (_a = this.users.findUserByID(l.userID)) === null || _a === void 0 ? void 0 : _a.moveLine(l.lineID, pck.delta);
         });
+        //this.selection.
+        this.selection.onPacketMoveLines();
     }
     setMode(mode) {
         this.mode = mode;
@@ -318,6 +323,9 @@ class Root {
     }
     onUIEventStrokeColorChange(color) {
         this.selection.onUIEventStrokeColorChange(color);
+    }
+    handleRemovedUser(pck) {
+        this.users.handleRemovedUser(pck.userID, pck.lines);
     }
 }
 class SelectionManager {
@@ -521,6 +529,9 @@ class SelectionManager {
     onPacketStrokeColorChange() {
         this.updateBrushMenu();
     }
+    onPacketMoveLines() {
+        this.updateBoundingBox();
+    }
     selectAll() {
         this.selectedLines = this.users.findAllLines();
         this.selectedLines.forEach(l => {
@@ -571,6 +582,7 @@ class User {
     }
     moveLine(lineID, delta) {
         var _a;
+        console.log("move line", this.userID);
         const path = (_a = this.findLineById(lineID)) === null || _a === void 0 ? void 0 : _a.path;
         if (path) {
             path.position = path.position.add(delta);
@@ -604,6 +616,11 @@ class User {
             return null;
         }
         return this.lines[this.lines.length - 1];
+    }
+    setOwner(lines) {
+        for (let i = 0; i < lines.length; i++) {
+            this.lines.push(lines[i].UpdateUserID(this.userID));
+        }
     }
 }
 class Users {
@@ -652,6 +669,27 @@ class Users {
         }
         u.deleteLine(lineID);
     }
+    handleRemovedUser(userID, lineUpdates) {
+        const u = this.findUserByID(userID);
+        if (!u) {
+            return;
+        }
+        this.users.delete(userID);
+        const nullUser = this.findUserByID(0);
+        if (!nullUser) {
+            return;
+        }
+        let lines = u.getLines();
+        for (let i = 0; i < lines.length; i++) {
+            for (let lineUpdate of lineUpdates) {
+                if (lines[i].lineID == lineUpdate.oldLineID) {
+                    lines[i] = lines[i].updateLineID(lineUpdate.newLineID);
+                    break;
+                }
+            }
+        }
+        nullUser.setOwner(lines);
+    }
 }
 // helper function here
 function packetWriteInt32(val, array, offset) {
@@ -689,9 +727,10 @@ class WebSocketHandler {
         this.queuedPackets = [];
     }
     connect() {
-        const socket = new WebSocket(WebSocketHandler.IP + window.location.pathname);
+        const socket = new WebSocket(WebSocketHandler.IP + window.location.pathname.replace("/c/", "/"));
         socket.binaryType = "arraybuffer";
         this.socket = socket;
+        $("#errormsg").text("");
         socket.onerror = ev => this.onError(ev);
         socket.onclose = ev => this.onClose(ev);
         socket.onopen = ev => this.onOpen(ev);
@@ -704,10 +743,12 @@ class WebSocketHandler {
     }
     onError(ev) {
         console.log("web socket error" + ev);
+        $("#errormsg").text("closed connection!");
     }
     onClose(ev) {
         this.isConnectionOpen = false;
         console.log("web socket closed" + ev);
+        $("#errormsg").text("closed connection!");
     }
     onOpen(ev) {
         var _a;
@@ -962,13 +1003,39 @@ function createPacket(rawMsg) {
         case 7 /* SetStrokeSize */:
             return new ServerSetStrokeSizePacket(rawMsg);
         case 8 /* SetStrokeColor */:
-            return new ServerSetStrokeColor(rawMsg);
+            return new ServerSetStrokeColorPacket(rawMsg);
+        case 9 /* RemovedUser */:
+            return new ServerRemovedUserPacket(rawMsg);
         default:
             break;
     }
     throw "unknown error";
 }
-class ServerSetStrokeColor {
+class LineUpdate {
+    constructor(oldLineID, newLineID) {
+        this.oldLineID = oldLineID;
+        this.newLineID = newLineID;
+    }
+}
+class ServerRemovedUserPacket {
+    constructor(rawMsg) {
+        this.lines = [];
+        this.userID = rawMsg[1];
+        const len = packetReadInt32(rawMsg, 2);
+        let offset = 6;
+        for (let i = 0; i < len; i++) {
+            const oldLineID = packetReadInt32(rawMsg, offset);
+            offset += 4;
+            const newLineID = packetReadInt32(rawMsg, offset);
+            offset += 4;
+            this.lines.push(new LineUpdate(oldLineID, newLineID));
+        }
+    }
+    getPacketType() {
+        return 9 /* RemovedUser */;
+    }
+}
+class ServerSetStrokeColorPacket {
     constructor(rawMsg) {
         this.userID = rawMsg[1];
         this.lineID = packetReadInt32(rawMsg, 2);
@@ -1176,6 +1243,12 @@ class DrawLine {
         this.path = path;
         this.lineID = lineID;
         this.userID = userID;
+    }
+    UpdateUserID(userID) {
+        return new DrawLine(this.path, this.lineID, userID);
+    }
+    updateLineID(lineID) {
+        return new DrawLine(this.path, lineID, this.userID);
     }
 }
 class UserLine extends DrawLine {

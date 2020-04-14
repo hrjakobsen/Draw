@@ -1,6 +1,6 @@
 package util
 
-type Line struct {
+type PacketLine struct {
 	UserID uint8
 	LineID int32
 }

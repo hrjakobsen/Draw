@@ -1,7 +1,6 @@
 package Packet
 
 import (
-	"fmt"
 	"github.com/MikkelKettunen/Draw/canvas/util"
 )
 
@@ -15,6 +14,7 @@ const (
 	ServerMoveLines      = 6
 	ServerSetStrokeSize  = 7
 	ServerSetStrokeColor = 8
+	ServerRemovedUser    = 9
 )
 
 type ServerPacket interface {
@@ -61,7 +61,6 @@ func (p *ServerBeginPathPacket) ToArray() []byte {
 	pck[1+1+4+8+1] = p.StrokeColor.R
 	pck[1+1+4+8+2] = p.StrokeColor.G
 	pck[1+1+4+8+3] = p.StrokeColor.B
-	fmt.Println("starting colour ", p.StrokeColor)
 	return pck
 }
 
@@ -98,7 +97,7 @@ func (p *ServerAddPointsPathPacket) ToArray() []byte {
 }
 
 type ServerDeleteLinesPacket struct {
-	Lines []util.Line
+	Lines []util.PacketLine
 }
 
 func (p *ServerDeleteLinesPacket) ToArray() []byte {
@@ -118,7 +117,7 @@ func (p *ServerDeleteLinesPacket) ToArray() []byte {
 
 type ServerMoveLinesPacket struct {
 	Delta util.Point
-	Lines []util.Line
+	Lines []util.PacketLine
 }
 
 func (p *ServerMoveLinesPacket) ToArray() []byte {
@@ -166,5 +165,29 @@ func (p *ServerSetStrokeColorPacket) ToArray() []byte {
 	pck[6+0] = p.Color.R
 	pck[6+1] = p.Color.G
 	pck[6+2] = p.Color.B
+	return pck
+}
+
+type ServerUpdateLineID struct {
+	OldLineID int32
+	NewLineID int32
+}
+type ServerRemovedUserPacket struct {
+	UserID uint8
+	Lines  []ServerUpdateLineID
+}
+
+func (p *ServerRemovedUserPacket) ToArray() []byte {
+	pck := make([]byte, 1+1+4+len(p.Lines)*8)
+	pck[0] = ServerRemovedUser
+	pck[1] = p.UserID
+	writeInt32(int32(len(p.Lines)), pck, 2)
+	offset := 6
+	for _, l := range p.Lines {
+		writeInt32(l.OldLineID, pck, offset)
+		offset += 4
+		writeInt32(l.NewLineID, pck, offset)
+		offset += 4
+	}
 	return pck
 }

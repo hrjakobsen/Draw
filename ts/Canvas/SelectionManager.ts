@@ -232,6 +232,11 @@ class SelectionManager {
         this.updateBrushMenu();
     }
 
+
+    onPacketMoveLines() {
+        this.updateBoundingBox()
+    }
+
     selectAll() {
         this.selectedLines = this.users.findAllLines();
         this.selectedLines.forEach( l => {

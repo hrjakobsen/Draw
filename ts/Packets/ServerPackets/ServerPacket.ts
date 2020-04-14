@@ -8,6 +8,7 @@ const enum ServerPacketIDs {
     MoveLines = 6,
     SetStrokeSize = 7,
     SetStrokeColor = 8,
+    RemovedUser = 9,
 }
 
 class UpdatedLine {
@@ -44,7 +45,9 @@ function createPacket(rawMsg: Uint8Array): ServerPacket {
         case ServerPacketIDs.SetStrokeSize:
             return new ServerSetStrokeSizePacket(rawMsg);
         case ServerPacketIDs.SetStrokeColor:
-            return new ServerSetStrokeColor(rawMsg);
+            return new ServerSetStrokeColorPacket(rawMsg);
+        case ServerPacketIDs.RemovedUser:
+            return new ServerRemovedUserPacket(rawMsg);
         default:
             break;
     }

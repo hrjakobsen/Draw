@@ -59,4 +59,26 @@ class Users {
     }
 
 
+    handleRemovedUser(userID: number, lineUpdates: LineUpdate[]) {
+        const u = this.findUserByID(userID);
+        if (!u) {
+            return
+        }
+        this.users.delete(userID);
+        const nullUser = this.findUserByID(0);
+        if (!nullUser) {
+            return
+        }
+
+        let lines = u.getLines();
+        for (let i = 0; i < lines.length; i++) {
+            for (let lineUpdate of lineUpdates) {
+                if (lines[i].lineID == lineUpdate.oldLineID) {
+                    lines[i] = lines[i].updateLineID(lineUpdate.newLineID);
+                    break
+                }
+            }
+        }
+        nullUser.setOwner(lines)
+    }
 }

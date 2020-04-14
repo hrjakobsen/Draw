@@ -233,7 +233,10 @@ class Root {
                 this.handleSetStrokeSize(<ServerSetStrokeSizePacket>pck);
                 break;
             case ServerPacketIDs.SetStrokeColor:
-                this.handleSetStrokeColor(<ServerSetStrokeColor>pck);
+                this.handleSetStrokeColor(<ServerSetStrokeColorPacket>pck);
+                break;
+            case ServerPacketIDs.RemovedUser:
+                this.handleRemovedUser(<ServerRemovedUserPacket>pck);
                 break;
         }
 
@@ -275,7 +278,9 @@ class Root {
         console.log("handleMove" + pck.delta);
         pck.lines.forEach(l => {
             this.users.findUserByID(l.userID)?.moveLine(l.lineID, pck.delta)
-        })
+        });
+        //this.selection.
+        this.selection.onPacketMoveLines()
     }
 
     setMode(mode: Mode) {
@@ -287,7 +292,7 @@ class Root {
         this.selection.onPacketStrokeSizeChange();
     }
 
-    private handleSetStrokeColor(pck: ServerSetStrokeColor) {
+    private handleSetStrokeColor(pck: ServerSetStrokeColorPacket) {
         this.users.findUserByID(pck.userID)?.setStrokeColor(pck.lineID, pck.color);
         this.selection.onPacketStrokeColorChange();
     }
@@ -298,5 +303,9 @@ class Root {
 
     onUIEventStrokeColorChange(color: paper.Color) {
         this.selection.onUIEventStrokeColorChange(color);
+    }
+
+    private handleRemovedUser(pck: ServerRemovedUserPacket) {
+        this.users.handleRemovedUser(pck.userID, pck.lines)
     }
 }

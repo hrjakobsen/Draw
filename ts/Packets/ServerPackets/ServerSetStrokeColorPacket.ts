@@ -1,4 +1,4 @@
-class ServerSetStrokeColor implements ServerPacket {
+class ServerSetStrokeColorPacket implements ServerPacket {
     readonly userID: number;
     readonly lineID: number;
     readonly color: Color;

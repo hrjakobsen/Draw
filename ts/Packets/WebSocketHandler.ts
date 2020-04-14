@@ -12,10 +12,11 @@ class WebSocketHandler
     private queuedPackets: Uint8Array[] = [];
 
     connect() {
-        const socket = new WebSocket(WebSocketHandler.IP + window.location.pathname);
+        const socket = new WebSocket(WebSocketHandler.IP + window.location.pathname.replace("/c/", "/"));
         socket.binaryType = "arraybuffer";
         this.socket = socket;
 
+        $("#errormsg").text("");
         socket.onerror = ev => this.onError(ev);
         socket.onclose = ev => this.onClose(ev);
         socket.onopen = ev => this.onOpen(ev);
@@ -29,12 +30,14 @@ class WebSocketHandler
     }
 
     private onError(ev: Event) {
-        console.log("web socket error" + ev)
+        console.log("web socket error" + ev);
+        $("#errormsg").text("closed connection!");
     }
 
     private onClose(ev: CloseEvent) {
         this.isConnectionOpen = false;
-        console.log("web socket closed" + ev)
+        console.log("web socket closed" + ev);
+        $("#errormsg").text("closed connection!");
     }
 
     private onOpen(ev: Event) {
@@ -45,7 +48,7 @@ class WebSocketHandler
         this.queuedPackets.forEach(pck => {
                 this.socket?.send(pck)
             }
-        )
+        );
     }
 
     sendPacket(pck: ClientPacket) {

@@ -115,7 +115,7 @@ func CreateEndPathPacket(message []byte) (ClientPacket, []byte, error) {
 }
 
 type ClientDeleteLinesPacket struct {
-	Lines []util.Line
+	Lines []util.PacketLine
 }
 
 func (c *ClientDeleteLinesPacket) GetPacketType() uint8 {
@@ -136,7 +136,7 @@ func CreateClientDeleteLinesPacket(message []byte) (ClientPacket, []byte, error)
 	}
 
 	res := &ClientDeleteLinesPacket{
-		Lines: make([]util.Line, count),
+		Lines: make([]util.PacketLine, count),
 	}
 
 	offset := 5
@@ -151,7 +151,7 @@ func CreateClientDeleteLinesPacket(message []byte) (ClientPacket, []byte, error)
 
 type ClientMoveLinesPacket struct {
 	Delta util.Point
-	Lines []util.Line
+	Lines []util.PacketLine
 }
 
 func (c *ClientMoveLinesPacket) GetPacketType() uint8 {
@@ -173,7 +173,7 @@ func CreateClientMoveLinesPacket(message []byte) (ClientPacket, []byte, error) {
 
 	res := &ClientMoveLinesPacket{
 		Delta: delta,
-		Lines: make([]util.Line, count),
+		Lines: make([]util.PacketLine, count),
 	}
 
 	offset := 1 + 8 + 4

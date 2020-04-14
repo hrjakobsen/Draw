@@ -49,6 +49,7 @@ class User {
     }
 
     moveLine(lineID: number, delta: paper.Point) {
+        console.log("move line", this.userID)
         const path = this.findLineById(lineID)?.path;
         if (path) {
             path.position = path.position.add(delta)
@@ -90,4 +91,9 @@ class User {
         return this.lines[this.lines.length - 1];
     }
 
+    setOwner(lines: DrawLine[]) {
+        for (let i = 0; i < lines.length; i++) {
+            this.lines.push(lines[i].UpdateUserID(this.userID))
+        }
+    }
 }

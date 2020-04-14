@@ -1,11 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b629b0fb-2f5e-4d01-b8ce-487c41eec661" name="Default Changelist" comment="" />
+    <list default="true" id="b629b0fb-2f5e-4d01-b8ce-487c41eec661" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/sqldialects.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DBSetupNotes/InitDB.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Database/Database.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/canvas/NullUser.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/canvas/Userlike.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ts/Packets/ServerPackets/ServerRemovedUserPacket.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DB/InitDB.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Templates/frontpage.html" beforeDir="false" afterPath="$PROJECT_DIR$/Templates/frontpage.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/canvas/Canvas.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/Canvas.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/canvas/CanvasManager.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/CanvasManager.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/canvas/Packet/ClientPackets.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/Packet/ClientPackets.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/canvas/Packet/ServerPackets.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/Packet/ServerPackets.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/canvas/User.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/User.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/canvas/util/Color.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/util/Color.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/canvas/util/Line.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/util/PacketLine.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/canvas/util/Point.go" beforeDir="false" afterPath="$PROJECT_DIR$/canvas/util/Point.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/css/frontpage.css" beforeDir="false" afterPath="$PROJECT_DIR$/css/frontpage.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/html/frontpage.go" beforeDir="false" afterPath="$PROJECT_DIR$/html/frontpage.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/js/frontpage.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/frontpage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts/Canvas/Root.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Canvas/Root.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts/Canvas/SelectionManager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Canvas/SelectionManager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts/Canvas/User.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Canvas/User.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts/Canvas/Users.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Canvas/Users.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts/Packets/ServerPackets/ServerPacket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Packets/ServerPackets/ServerPacket.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts/Packets/ServerPackets/ServerSetStrokeColor.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Packets/ServerPackets/ServerSetStrokeColorPacket.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts/Packets/WebSocketHandler.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/Packets/WebSocketHandler.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ts/util/Line.ts" beforeDir="false" afterPath="$PROJECT_DIR$/ts/util/Line.ts" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DatabaseView">
+    <option name="SHOW_INTERMEDIATE" value="true" />
+    <option name="GROUP_DATA_SOURCES" value="true" />
+    <option name="GROUP_SCHEMA" value="true" />
+    <option name="GROUP_CONTENTS" value="false" />
+    <option name="SORT_POSITIONED" value="false" />
+    <option name="SHOW_EMPTY_GROUPS" value="false" />
+    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
+    <option name="HIDDEN_KINDS">
+      <set />
+    </option>
+    <expand />
+    <select />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -14,17 +59,20 @@
       </list>
     </option>
   </component>
-  <component name="GOROOT" path="D:\Programs\go" />
+  <component name="GOROOT" path="D:/Program Files (x86)/go" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectId" id="1ZxAdQJVulHV7wUphhXCv8bgKoD" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="DefaultGoTemplateProperty" value="Go File" />
     <property name="JSInitializeFieldsIntentionBase.visibility" value="private" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="go.import.settings.migrated" value="true" />
@@ -40,16 +88,16 @@
     <property name="ts.external.directory.path" value="C:\Program Files\JetBrains\IntelliJ IDEA 2019.3.4\plugins\JavaScriptLanguage\jsLanguageServicesImpl\external" />
   </component>
   <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\mkk\Documents\go\src\github.com\MikkelKettunen\Draw\ts\Packets" />
-      <recent name="C:\Users\mkk\Documents\go\src\github.com\MikkelKettunen\Draw\ts\Canvas" />
-      <recent name="C:\Users\mkk\Documents\go\src\github.com\MikkelKettunen\Draw\ts\UIHelper" />
-      <recent name="C:\Users\mkk\Documents\go\src\github.com\MikkelKettunen\Draw\ts\util" />
-      <recent name="C:\Users\mkk\Documents\go\src\github.com\MikkelKettunen\Draw\canvas" />
-    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\mkk\Documents\go\src\github.com\MikkelKettunen\Draw\canvas" />
       <recent name="C:\Users\mkk\Documents\go\src\github.com\MikkelKettunen\Draw\ts" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\mkk\Documents\go\src\github.com\MikkelKettunen\Draw\canvas\util" />
+      <recent name="C:\Users\mkk\Documents\go\src\github.com\MikkelKettunen\Draw\canvas" />
+      <recent name="C:\Users\mkk\Documents\go\src\github.com\MikkelKettunen\Draw\canvas\User" />
+      <recent name="C:\Users\mkk\Documents\go\src\github.com\MikkelKettunen\Draw" />
+      <recent name="C:\Users\mkk\Documents\go\src\github.com\MikkelKettunen\Draw\Go" />
     </key>
   </component>
   <component name="RunManager">
@@ -91,11 +139,16 @@
       <workItem from="1586200184139" duration="828000" />
       <workItem from="1586274294958" duration="31077000" />
       <workItem from="1586373636399" duration="11634000" />
+      <workItem from="1586788116846" duration="51000" />
+      <workItem from="1586788206190" duration="945000" />
+      <workItem from="1586789161937" duration="24742000" />
+      <workItem from="1586851152295" duration="11272000" />
+      <workItem from="1586884214852" duration="682000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
+    <option name="version" value="2" />
     <option name="exactExcludedFiles">
       <list>
         <option value="$PROJECT_DIR$/ts/main.js" />
@@ -103,54 +156,70 @@
     </option>
   </component>
   <component name="WindowStateProjectService">
+    <state x="244" y="460" key="#GOROOT" timestamp="1586790269876">
+      <screen x="0" y="0" width="3840" height="2120" />
+    </state>
+    <state x="244" y="460" key="#GOROOT/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586790269876" />
     <state x="452" y="639" key="#Inspections" timestamp="1585944721730">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
     <state x="452" y="639" key="#Inspections/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1585944721730" />
+    <state x="414" y="711" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1586791736107">
+      <screen x="0" y="0" width="3840" height="2120" />
+    </state>
+    <state x="414" y="711" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586791736107" />
     <state x="694" y="848" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1586131370854">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
     <state x="694" y="848" key="#com.intellij.fileTypes.FileTypeChooser/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586131370854" />
-    <state x="721" y="712" key="#com.intellij.ide.util.MemberChooser" timestamp="1586131387825">
+    <state x="721" y="712" key="#com.intellij.ide.util.MemberChooser" timestamp="1586808445628">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
-    <state x="721" y="712" key="#com.intellij.ide.util.MemberChooser/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586131387825" />
-    <state width="522" height="582" key="DebuggerActiveHint" timestamp="1586126487580">
+    <state x="721" y="712" key="#com.intellij.ide.util.MemberChooser/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586808445628" />
+    <state x="1600" y="785" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1586884113340">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
-    <state width="522" height="582" key="DebuggerActiveHint/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586126487580" />
-    <state width="2438" height="582" key="GridCell.Tab.0.bottom" timestamp="1586385557787">
+    <state x="1600" y="785" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586884113340" />
+    <state width="903" height="582" key="DebuggerActiveHint" timestamp="1586812932178">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
-    <state width="2438" height="582" key="GridCell.Tab.0.bottom/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586385557787" />
-    <state width="2438" height="582" key="GridCell.Tab.0.center" timestamp="1586385557787">
+    <state width="903" height="582" key="DebuggerActiveHint/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586812932178" />
+    <state x="482" y="582" key="FileChooserDialogImpl" timestamp="1586790268963">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
-    <state width="2438" height="582" key="GridCell.Tab.0.center/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586385557787" />
-    <state width="2438" height="582" key="GridCell.Tab.0.left" timestamp="1586385557787">
+    <state x="482" y="582" key="FileChooserDialogImpl/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586790268963" />
+    <state width="1891" height="762" key="GridCell.Tab.0.bottom" timestamp="1586884127749">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
-    <state width="2438" height="582" key="GridCell.Tab.0.left/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586385557787" />
-    <state width="2438" height="582" key="GridCell.Tab.0.right" timestamp="1586385557787">
+    <state width="1891" height="762" key="GridCell.Tab.0.bottom/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586884127749" />
+    <state width="1891" height="762" key="GridCell.Tab.0.center" timestamp="1586884127749">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
-    <state width="2438" height="582" key="GridCell.Tab.0.right/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586385557787" />
-    <state width="3785" height="763" key="GridCell.Tab.1.bottom" timestamp="1586127352727">
+    <state width="1891" height="762" key="GridCell.Tab.0.center/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586884127749" />
+    <state width="1891" height="762" key="GridCell.Tab.0.left" timestamp="1586884127749">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
-    <state width="3785" height="763" key="GridCell.Tab.1.bottom/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586127352727" />
-    <state width="3785" height="763" key="GridCell.Tab.1.center" timestamp="1586127352727">
+    <state width="1891" height="762" key="GridCell.Tab.0.left/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586884127749" />
+    <state width="1891" height="762" key="GridCell.Tab.0.right" timestamp="1586884127749">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
-    <state width="3785" height="763" key="GridCell.Tab.1.center/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586127352727" />
-    <state width="3785" height="763" key="GridCell.Tab.1.left" timestamp="1586127352727">
+    <state width="1891" height="762" key="GridCell.Tab.0.right/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586884127749" />
+    <state width="1891" height="762" key="GridCell.Tab.1.bottom" timestamp="1586884127749">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
-    <state width="3785" height="763" key="GridCell.Tab.1.left/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586127352727" />
-    <state width="3785" height="763" key="GridCell.Tab.1.right" timestamp="1586127352727">
+    <state width="1891" height="762" key="GridCell.Tab.1.bottom/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586884127749" />
+    <state width="1891" height="762" key="GridCell.Tab.1.center" timestamp="1586884127749">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
-    <state width="3785" height="763" key="GridCell.Tab.1.right/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586127352727" />
+    <state width="1891" height="762" key="GridCell.Tab.1.center/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586884127749" />
+    <state width="1891" height="762" key="GridCell.Tab.1.left" timestamp="1586884127749">
+      <screen x="0" y="0" width="3840" height="2120" />
+    </state>
+    <state width="1891" height="762" key="GridCell.Tab.1.left/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586884127749" />
+    <state width="1891" height="762" key="GridCell.Tab.1.right" timestamp="1586884127749">
+      <screen x="0" y="0" width="3840" height="2120" />
+    </state>
+    <state width="1891" height="762" key="GridCell.Tab.1.right/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586884127749" />
     <state width="1928" height="1068" key="XDebugger.FullValuePopup" timestamp="1586127093152">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
@@ -175,13 +244,29 @@
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
     <state x="1602" y="620" key="refactoring.ChangeSignatureDialog/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586284114005" />
-    <state x="2452" y="510" key="run.anything.popup" timestamp="1586123243414">
+    <state x="2452" y="510" width="840" height="1034" key="run.anything.popup" timestamp="1586882734554">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
-    <state x="2452" y="510" key="run.anything.popup/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586123243414" />
-    <state x="539" y="1085" width="840" height="1034" key="search.everywhere.popup" timestamp="1586383096153">
+    <state x="2452" y="510" width="840" height="1034" key="run.anything.popup/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586882734554" />
+    <state x="539" y="1085" width="840" height="1034" key="search.everywhere.popup" timestamp="1586884870734">
       <screen x="0" y="0" width="3840" height="2120" />
     </state>
-    <state x="539" y="1085" width="840" height="1034" key="search.everywhere.popup/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586383096153" />
+    <state x="539" y="1085" width="840" height="1034" key="search.everywhere.popup/0.0.3840.2120/-1920.0.1920.1040@0.0.3840.2120" timestamp="1586884870734" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/canvas/NullUser.go</url>
+          <line>85</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/canvas/NullUser.go</url>
+          <line>71</line>
+          <option name="timeStamp" value="15" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

@@ -8,6 +8,8 @@ class SelectionManager {
     private ws: WebSocketHandler;
     private brushMenu: BrushMenu;
 
+    private linesCopied: CopyLine[] = []
+
     constructor(users: Users, ws: WebSocketHandler, brushMenu: BrushMenu) {
         this.users = users;
         this.ws = ws;
@@ -40,8 +42,8 @@ class SelectionManager {
             if (ev.modifiers.shift || ev.modifiers.control) {
                 this.insertIfExistsElseRemove(mouseOver)
             } else {
-                this.selectedLines.forEach(l => l.path.selected = false);
-                mouseOver.path.selected = true;
+                this.selectedLines.forEach(l => l.selected(false));
+                mouseOver.selected(true);
                 this.selectedLines = [mouseOver];
             }
             this.mouseOverSelected = null;
@@ -54,7 +56,7 @@ class SelectionManager {
                     this.insertIfExistsElseRemove(l);
                 }
             } else {
-                this.selectedLines.forEach(l => l.path.selected = false);
+                this.selectedLines.forEach(l => l.selected(false));
                 this.selectedLines = [];
             }
         }
@@ -70,12 +72,14 @@ class SelectionManager {
         this.selectedLines = [];
         const allLines = this.users.findAllLines();
         allLines.forEach(line => {
-            const path = line.path;
-            if (path.isInside(rect) || path.intersects(this.selectionRect)) {
-                path.selected = true;
+            //const path = line.path;
+            if (line.isInside(rect) || line.intersects(this.selectionRect)) {
+                line.selected(true);
+                //path.selected = true;
                 this.selectedLines.push(line);
             } else {
-                path.selected = false;
+                line.selected(false);
+                //path.selected = false;
             }
         });
 
@@ -88,14 +92,16 @@ class SelectionManager {
         const mouseOver = this.mouseOverSelected;
         if (mouseOver) {
             if (!this.contains(this.selectedLines, mouseOver)) {
-                mouseOver.path.selected = false;
+                mouseOver.selected(false);
+                //mouseOver.path.selected = false;
             }
         }
         this.mouseOverSelected = null;
         const line = this.getUnderMouse(point);
         if (line != null) {
             this.mouseOverSelected = line;
-            line.path.selected = true;
+            line.selected(true);
+            //line.path.selected = true;
         }
     }
 
@@ -114,9 +120,9 @@ class SelectionManager {
         return this.users.findLineByPath(path)
     }
 
-    delete(ws: WebSocketHandler) {
+    delete() {
         let pck = new ClientDeleteLines(this.selectedLines);
-        ws.sendPacket(pck);
+        this.ws.sendPacket(pck);
         this.selectedLines.forEach(l => this.users.deleteLine(l.userID, l.lineID));
         this.selectedLines = [];
         this.updateBrushMenu();
@@ -125,7 +131,7 @@ class SelectionManager {
 
     clear() {
         this.selectedLines.forEach(l =>
-            l.path.selected = false
+            l.selected(false)
         );
         this.selectedLines = [];
         this.updateBrushMenu();
@@ -134,7 +140,8 @@ class SelectionManager {
 
     move(delta: paper.Point) {
         this.selectedLines.forEach(l => {
-            l.path.position = l.path.position.add(delta);
+            l.moveDelta(delta)
+            //l.path.position = l.path.position.add(delta);
         });
         const pck = new ClientMoveLines(this.selectedLines, delta);
         console.log(delta);
@@ -146,13 +153,13 @@ class SelectionManager {
         if (this.selectedLines.length == 0)
             return;
 
-        let width = this.selectedLines.map(l => l.path.strokeWidth);
+        let width = this.selectedLines.map(l => l.strokeWidth());
         let firstWidth = width[0];
         if (width.every(value => value == firstWidth)) {
             this.brushMenu.setStrokeWidth(firstWidth)
         }
 
-        let color = this.selectedLines.map(l => l.path.strokeColor);
+        let color = this.selectedLines.map(l => l.strokeColor());
         let firstColor = color[0];
         if (color.every(value => value == firstColor)) {
             this.brushMenu.setStrokeColor(<paper.Color>firstColor)
@@ -164,12 +171,12 @@ class SelectionManager {
         console.log("here 2", this.selectedLines);
         if (!this.contains(this.selectedLines, l)) {
             console.log("insert here");
-            l.path.selected = true;
+            l.selected(true);
             this.selectedLines.push(l);
         } else {
             // should we remove this?
             console.log("remove here", this.selectedLines.length);
-            l.path.selected = false;
+            l.selected(false);
             this.selectedLines = this.selectedLines.filter(line => line.lineID != l.lineID);
             console.log("remove here - ", this.selectedLines.length);
         }
@@ -182,10 +189,10 @@ class SelectionManager {
             return;
         }
 
-        let min = this.selectedLines[0].path.strokeBounds.center;
+        let min = this.selectedLines[0].strokeBounds().center;
         let max = min;
         this.selectedLines.forEach(l => {
-            const boundingBox = l.path.strokeBounds;
+            const boundingBox = l.strokeBounds();
             const p1 = boundingBox.topLeft;
             const p2 = boundingBox.bottomRight;
             min = paper.Point.min(min, p1);
@@ -207,8 +214,8 @@ class SelectionManager {
     }
 
     onUIEventStrokeSizeChange(size: number) {
-        this.selectedLines.forEach( l => {
-                l.path.strokeWidth = size;
+        this.selectedLines.forEach(l => {
+                l.updateStrokeWidth(size);
                 const pck = new ClientChangeStrokeSize(l, size);
                 this.ws.sendPacket(pck);
             }
@@ -220,8 +227,8 @@ class SelectionManager {
     }
 
     onUIEventStrokeColorChange(color: paper.Color) {
-        this.selectedLines.forEach( l => {
-            l.path.strokeColor = color;
+        this.selectedLines.forEach(l => {
+            l.updateStrokeColor(color);
             const pck = new ClientSetStrokeColor(l, color);
             this.ws.sendPacket(pck);
         });
@@ -239,10 +246,68 @@ class SelectionManager {
 
     selectAll() {
         this.selectedLines = this.users.findAllLines();
-        this.selectedLines.forEach( l => {
-            l.path.selected = true;
+        this.selectedLines.forEach(l => {
+            l.selected(true);
         });
         this.updateBrushMenu();
         this.updateBoundingBox();
+    }
+
+    copy() {
+        this.linesCopied = this.selectedLines.map(l => l.copy())
+    }
+
+    paste(pathIDGenerator: PathIDGenerator) {
+        const u = this.users.getMyUser()
+        if (!u) {
+            return
+        }
+        const uid = u.userID;
+
+        const offset = new paper.Point(20, 20);
+
+        this.clear();
+
+        this.linesCopied.forEach(l => {
+                const pathID = pathIDGenerator.getNext();
+                const rawPath = l.rawPath;
+                const width = l.strokeWidth;
+                const color = l.strokeColor;
+
+                const start = rawPath[0].add(offset)
+                const restPath: paper.Point[] = [];
+                rawPath.forEach((value, index) => {
+                    if (index != 0) {
+                        restPath.push(value.add(offset))
+                    }
+                });
+
+                const path = new paper.Path({
+                    segments: [start].concat(restPath),
+                    // Select the path, so we can see its segment points:
+                    fullySelected: false,
+                    strokeWidth: width,
+                    strokeColor: color,
+                });
+
+                const newLine = new DrawLine(path, pathID, uid, [start].concat(restPath))
+                u.addLine(newLine)
+                newLine.simplify()
+
+                const beginPath = new ClientBeginPath(pathID, start, width, color)
+                const updatePath = new ClientAddPointsPath(pathID, restPath)
+                const endPath = new ClientEndPath(pathID)
+
+                this.ws.sendPacket(beginPath)
+                this.ws.sendPacket(updatePath)
+                this.ws.sendPacket(endPath)
+
+                this.selectedLines.push(newLine)
+                newLine.selected(true)
+            }
+        );
+
+        this.updateBoundingBox();
+        this.updateBrushMenu();
     }
 }

@@ -1,7 +1,13 @@
 class UIManager {
     private root: Root;
 
-    private brushMenu: BrushMenu;
+    private readonly brushMenu: BrushMenu;
+
+    private readonly panMode = $("#UIPanMode");
+    private readonly drawMode = $("#UIDrawMode");
+    private readonly selMode = $("#UISelectMode");
+    private readonly moveMode = $("#UIMoveSelectedMode");
+    private active: JQuery<HTMLElement> = this.drawMode;
 
     constructor(root: Root) {
         this.root = root;
@@ -12,39 +18,21 @@ class UIManager {
     }
 
     private setupButtons() {
-        const panMode = $("#UIPanMode");
-        const drawMode = $("#UIDrawMode");
-        const selMode = $("#UISelectMode");
-        const moveMode = $("#UIMoveSelectedMode");
+        this.panMode.on("click", () => this.setModePan());
+        this.drawMode.on("click", () => this.setModeDraw());
+        this.selMode.on("click", () => this.setModeSelect());
+        this.moveMode.on("click", () => this.setModeMove());
 
-        let active = drawMode;
+        $("#UIDeleteSelectionButton").on("click", () => {
+            this.root.deleteSelection()
+        })
 
-        panMode.on("click", () => {
-            this.root.setMode(Mode.PAN);
-            active.removeClass("active");
-            active = panMode;
-            active.addClass("active");
-        });
-        drawMode.on("click", () => {
-            this.root.setMode(Mode.DRAW);
-            active.removeClass("active");
-            active = drawMode;
-            active.addClass("active");
-        });
-        selMode.on("click", () => {
-            this.root.setMode(Mode.SELECT);
-            active.removeClass("active");
-            active = selMode;
-            active.addClass("active");
-        });
-        moveMode.on("click", () => {
-            this.root.setMode(Mode.MOVE_SELECTED);
-            active.removeClass("active");
-            active = moveMode;
-            active.addClass("active");
-        });
+        $("#UIUndoButton").on("click", () => {
+            this.root.undo()
+        })
 
     }
+
 
     getStrokeWidth(): number {
         return this.brushMenu.getStrokeWidth();
@@ -64,5 +52,37 @@ class UIManager {
 
     onUIStrokeColorChange(color: paper.Color) {
         this.root.onUIEventStrokeColorChange(color);
+    }
+
+    setModeMove() {
+        if (this.root.setMode(Mode.MOVE_SELECTED)) {
+            this.active.removeClass("active");
+            this.active = this.moveMode;
+            this.active.addClass("active");
+        }
+    }
+
+    setModeSelect() {
+        if (this.root.setMode(Mode.SELECT)) {
+            this.active.removeClass("active");
+            this.active = this.selMode;
+            this.active.addClass("active");
+        }
+    }
+
+    setModeDraw() {
+        if (this.root.setMode(Mode.DRAW)) {
+            this.active.removeClass("active");
+            this.active = this.drawMode;
+            this.active.addClass("active");
+        }
+    }
+
+    setModePan() {
+        if (this.root.setMode(Mode.PAN)) {
+            this.active.removeClass("active");
+            this.active = this.panMode;
+            this.active.addClass("active");
+        }
     }
 }

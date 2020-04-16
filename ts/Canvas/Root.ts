@@ -12,7 +12,7 @@ class Root {
     private ws: WebSocketHandler = new WebSocketHandler();
     private users: Users = new Users(this.ws);
 
-    private pathIDGenerator = 0;
+    private pathIDGenerator = new PathIDGenerator(0);
     private mode: Mode = Mode.DRAW;
 
     /* selecting */
@@ -21,6 +21,7 @@ class Root {
     /* my paths */
     private pathID: number = 0;
     private path: paper.Path | null = null;
+    private rawPath: paper.Point[] = [];
 
     // UI
     private ui: UIManager;
@@ -31,6 +32,9 @@ class Root {
     private mouseDragged: boolean = false;
 
     private camera: Camera;
+
+    /* mouse position */
+    private lastMousePosition = new paper.Point(0, 0)
 
     constructor() {
         let canvas = <HTMLCanvasElement>document.getElementById("draw-canvas");
@@ -78,7 +82,8 @@ class Root {
                 strokeWidth: this.ui.getStrokeWidth(),
                 strokeColor: this.ui.getColor(),
             });
-            this.pathID = this.pathIDGenerator++;
+            this.rawPath = [ev.point]
+            this.pathID = this.pathIDGenerator.getNext();
             this.ws.sendPacket(
                 new ClientBeginPath(
                     this.pathID,
@@ -106,9 +111,10 @@ class Root {
                     )
                 );
                 if (this.path != null) {
-                    const drawLine = new DrawLine(this.path, this.pathID, this.users.getMyUserID());
+                    const drawLine = new DrawLine(this.path, this.pathID, this.users.getMyUserID(), this.rawPath);
                     if (this.mouseDragged) {
-                        this.path.simplify(10);
+                        //this.path.simplify();
+                        drawLine.simplify()
                         this.users.getMyUser()?.addLine(drawLine);
                         //this.selection.setSelected(drawLine);
                     } else {
@@ -122,6 +128,7 @@ class Root {
                 // this.camera.endPan()
             } else if (this.mode == Mode.SELECT) {
                 this.selection.onMouseUp(ev, this.mouseDragged);
+                this.ui.setModeMove()
             }
             console.log("mouseUp")
         }
@@ -133,12 +140,13 @@ class Root {
         if (this.mode == Mode.DRAW) {
             if (this.path != null) {
                 this.ws.sendPacket(
-                    new clientAddPointsPath(
+                    new ClientAddPointsPath(
                         this.pathID,
                         [ev.point]
                     )
                 );
                 this.path.add(ev.point);
+                this.rawPath.push(ev.point);
             }
         } else if (this.mode == Mode.PAN) {
             this.camera.moveByPan(ev.point)
@@ -150,6 +158,7 @@ class Root {
     }
 
     private onMouseMove(ev: paper.MouseEvent) {
+        this.lastMousePosition = ev.point
         if (this.mode == Mode.SELECT) {
             this.selection.onMouseMove(ev.point, this.mouseDown)
         }
@@ -161,17 +170,12 @@ class Root {
 
     private onKeyDown(event: paper.KeyEvent) {
         if (event.key == "delete") {
-            this.selection.delete(this.ws)
+            this.deleteSelection()
         } else if (event.key == "escape") {
             this.selection.clear()
         } else if (event.key == "z") {
             if (event.modifiers.control) {
-                const line = this.users.getMyUser()?.getLastLine();
-                if (line) {
-                    this.deleteLine(line.userID, line.lineID);
-                    const pck = new ClientDeleteLines([line]);
-                    this.ws.sendPacket(pck);
-                }
+                this.undo()
             }
         } else if (event.key == "a") {
             if (event.modifiers.control) {
@@ -180,13 +184,33 @@ class Root {
                 // @ts-ignore
                 event.preventDefault();
             }
+        } else if (event.key == "c") {
+            if (event.modifiers.control) {
+                this.selection.copy()
+            }
+        } else if (event.key == "v") {
+            if (event.modifiers.control) {
+                this.selection.paste(this.pathIDGenerator)
+            }
+        } else if (event.key == "1") {
+            this.ui.setModePan()
+        } else if (event.key == "2" || event.key == "p") {
+            this.ui.setModeDraw()
+        } else if (event.key == "3" || event.key == "s") {
+            this.ui.setModeSelect()
+        } else if (event.key == "4" || event.key == "m") {
+            this.ui.setModeMove()
+        } else if (event.key == "5" || event.key == "d") {
+            this.deleteSelection()
+        } else if (event.key == "6") {
+            this.undo()
         }
     }
 
     onMouseScroll(e: JQuery.TriggeredEvent<HTMLCanvasElement, undefined, HTMLCanvasElement, HTMLCanvasElement>) {
         const event = <WheelEvent>e.originalEvent;
         if (event.ctrlKey) {
-            let direction = event.deltaY < 0 ? ZoomDirection.IN : ZoomDirection.OUT;
+            let direction = event.deltaY < 0 ? ZoomDirection.OUT : ZoomDirection.IN;
             this.camera.zoom(direction, event.shiftKey);
             event.preventDefault()
         } else {
@@ -283,8 +307,11 @@ class Root {
         this.selection.onPacketMoveLines()
     }
 
-    setMode(mode: Mode) {
-        this.mode = mode;
+    setMode(mode: Mode): boolean {
+        if (!this.mouseDown) {
+            this.mode = mode;
+        }
+        return !this.mouseDown
     }
 
     private handleSetStrokeSize(pck: ServerSetStrokeSizePacket) {
@@ -307,5 +334,18 @@ class Root {
 
     private handleRemovedUser(pck: ServerRemovedUserPacket) {
         this.users.handleRemovedUser(pck.userID, pck.lines)
+    }
+
+    deleteSelection() {
+        this.selection.delete()
+    }
+
+    undo() {
+        const line = this.users.getMyUser()?.getLastLine();
+        if (line) {
+            this.deleteLine(line.userID, line.lineID);
+            const pck = new ClientDeleteLines([line]);
+            this.ws.sendPacket(pck);
+        }
     }
 }

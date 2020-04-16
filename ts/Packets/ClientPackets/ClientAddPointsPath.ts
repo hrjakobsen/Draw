@@ -1,4 +1,4 @@
-class clientAddPointsPath implements ClientPacket
+class ClientAddPointsPath implements ClientPacket
 {
     private readonly points: paper.Point[];
     private readonly id: number;

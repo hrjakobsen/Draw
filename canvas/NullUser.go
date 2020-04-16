@@ -115,6 +115,10 @@ func (u *NullUser) sendLinesTo(user *User) {
 	queue := make([]Packet.ServerPacket, 0)
 	fmt.Println("null user sending", len(u.lines))
 	for _, l := range u.lines {
+		if l.deleted {
+			continue
+		}
+
 		create := &Packet.ServerBeginPathPacket{
 			UserID:      u.userID,
 			LineID:      l.lineID,

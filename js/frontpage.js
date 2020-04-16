@@ -81,13 +81,16 @@ class Root {
     constructor() {
         this.ws = new WebSocketHandler();
         this.users = new Users(this.ws);
-        this.pathIDGenerator = 0;
+        this.pathIDGenerator = new PathIDGenerator(0);
         this.mode = Mode.DRAW;
         /* my paths */
         this.pathID = 0;
         this.path = null;
+        this.rawPath = [];
         this.mouseDown = false;
         this.mouseDragged = false;
+        /* mouse position */
+        this.lastMousePosition = new paper.Point(0, 0);
         let canvas = document.getElementById("draw-canvas");
         paper.setup(canvas);
         paper.view.onMouseDown = event => this.onMouseDown(event);
@@ -122,7 +125,8 @@ class Root {
                 strokeWidth: this.ui.getStrokeWidth(),
                 strokeColor: this.ui.getColor(),
             });
-            this.pathID = this.pathIDGenerator++;
+            this.rawPath = [ev.point];
+            this.pathID = this.pathIDGenerator.getNext();
             this.ws.sendPacket(new ClientBeginPath(this.pathID, ev.point, this.ui.getStrokeWidth(), this.ui.getColor()));
         }
         else if (this.mode == Mode.PAN) {
@@ -139,9 +143,10 @@ class Root {
             if (this.mode == Mode.DRAW) {
                 this.ws.sendPacket(new ClientEndPath(this.pathID));
                 if (this.path != null) {
-                    const drawLine = new DrawLine(this.path, this.pathID, this.users.getMyUserID());
+                    const drawLine = new DrawLine(this.path, this.pathID, this.users.getMyUserID(), this.rawPath);
                     if (this.mouseDragged) {
-                        this.path.simplify(10);
+                        //this.path.simplify();
+                        drawLine.simplify();
                         (_a = this.users.getMyUser()) === null || _a === void 0 ? void 0 : _a.addLine(drawLine);
                         //this.selection.setSelected(drawLine);
                     }
@@ -158,6 +163,7 @@ class Root {
             }
             else if (this.mode == Mode.SELECT) {
                 this.selection.onMouseUp(ev, this.mouseDragged);
+                this.ui.setModeMove();
             }
             console.log("mouseUp");
         }
@@ -167,8 +173,9 @@ class Root {
         this.mouseDragged = true;
         if (this.mode == Mode.DRAW) {
             if (this.path != null) {
-                this.ws.sendPacket(new clientAddPointsPath(this.pathID, [ev.point]));
+                this.ws.sendPacket(new ClientAddPointsPath(this.pathID, [ev.point]));
                 this.path.add(ev.point);
+                this.rawPath.push(ev.point);
             }
         }
         else if (this.mode == Mode.PAN) {
@@ -182,6 +189,7 @@ class Root {
         }
     }
     onMouseMove(ev) {
+        this.lastMousePosition = ev.point;
         if (this.mode == Mode.SELECT) {
             this.selection.onMouseMove(ev.point, this.mouseDown);
         }
@@ -190,21 +198,15 @@ class Root {
         this.background.onMove();
     }
     onKeyDown(event) {
-        var _a;
         if (event.key == "delete") {
-            this.selection.delete(this.ws);
+            this.deleteSelection();
         }
         else if (event.key == "escape") {
             this.selection.clear();
         }
         else if (event.key == "z") {
             if (event.modifiers.control) {
-                const line = (_a = this.users.getMyUser()) === null || _a === void 0 ? void 0 : _a.getLastLine();
-                if (line) {
-                    this.deleteLine(line.userID, line.lineID);
-                    const pck = new ClientDeleteLines([line]);
-                    this.ws.sendPacket(pck);
-                }
+                this.undo();
             }
         }
         else if (event.key == "a") {
@@ -214,11 +216,39 @@ class Root {
                 event.preventDefault();
             }
         }
+        else if (event.key == "c") {
+            if (event.modifiers.control) {
+                this.selection.copy();
+            }
+        }
+        else if (event.key == "v") {
+            if (event.modifiers.control) {
+                this.selection.paste(this.pathIDGenerator);
+            }
+        }
+        else if (event.key == "1") {
+            this.ui.setModePan();
+        }
+        else if (event.key == "2" || event.key == "p") {
+            this.ui.setModeDraw();
+        }
+        else if (event.key == "3" || event.key == "s") {
+            this.ui.setModeSelect();
+        }
+        else if (event.key == "4" || event.key == "m") {
+            this.ui.setModeMove();
+        }
+        else if (event.key == "5" || event.key == "d") {
+            this.deleteSelection();
+        }
+        else if (event.key == "6") {
+            this.undo();
+        }
     }
     onMouseScroll(e) {
         const event = e.originalEvent;
         if (event.ctrlKey) {
-            let direction = event.deltaY < 0 ? ZoomDirection.IN : ZoomDirection.OUT;
+            let direction = event.deltaY < 0 ? ZoomDirection.OUT : ZoomDirection.IN;
             this.camera.zoom(direction, event.shiftKey);
             event.preventDefault();
         }
@@ -306,7 +336,10 @@ class Root {
         this.selection.onPacketMoveLines();
     }
     setMode(mode) {
-        this.mode = mode;
+        if (!this.mouseDown) {
+            this.mode = mode;
+        }
+        return !this.mouseDown;
     }
     handleSetStrokeSize(pck) {
         var _a;
@@ -327,12 +360,25 @@ class Root {
     handleRemovedUser(pck) {
         this.users.handleRemovedUser(pck.userID, pck.lines);
     }
+    deleteSelection() {
+        this.selection.delete();
+    }
+    undo() {
+        var _a;
+        const line = (_a = this.users.getMyUser()) === null || _a === void 0 ? void 0 : _a.getLastLine();
+        if (line) {
+            this.deleteLine(line.userID, line.lineID);
+            const pck = new ClientDeleteLines([line]);
+            this.ws.sendPacket(pck);
+        }
+    }
 }
 class SelectionManager {
     constructor(users, ws, brushMenu) {
         this.selectionStart = new paper.Point(0, 0);
         this.selectedLines = [];
         this.mouseOverSelected = null;
+        this.linesCopied = [];
         this.contains = (lines, line) => lines.indexOf(line) > -1;
         this.users = users;
         this.ws = ws;
@@ -361,8 +407,8 @@ class SelectionManager {
                 this.insertIfExistsElseRemove(mouseOver);
             }
             else {
-                this.selectedLines.forEach(l => l.path.selected = false);
-                mouseOver.path.selected = true;
+                this.selectedLines.forEach(l => l.selected(false));
+                mouseOver.selected(true);
                 this.selectedLines = [mouseOver];
             }
             this.mouseOverSelected = null;
@@ -377,7 +423,7 @@ class SelectionManager {
                 }
             }
             else {
-                this.selectedLines.forEach(l => l.path.selected = false);
+                this.selectedLines.forEach(l => l.selected(false));
                 this.selectedLines = [];
             }
         }
@@ -392,13 +438,15 @@ class SelectionManager {
         this.selectedLines = [];
         const allLines = this.users.findAllLines();
         allLines.forEach(line => {
-            const path = line.path;
-            if (path.isInside(rect) || path.intersects(this.selectionRect)) {
-                path.selected = true;
+            //const path = line.path;
+            if (line.isInside(rect) || line.intersects(this.selectionRect)) {
+                line.selected(true);
+                //path.selected = true;
                 this.selectedLines.push(line);
             }
             else {
-                path.selected = false;
+                line.selected(false);
+                //path.selected = false;
             }
         });
     }
@@ -408,14 +456,16 @@ class SelectionManager {
         const mouseOver = this.mouseOverSelected;
         if (mouseOver) {
             if (!this.contains(this.selectedLines, mouseOver)) {
-                mouseOver.path.selected = false;
+                mouseOver.selected(false);
+                //mouseOver.path.selected = false;
             }
         }
         this.mouseOverSelected = null;
         const line = this.getUnderMouse(point);
         if (line != null) {
             this.mouseOverSelected = line;
-            line.path.selected = true;
+            line.selected(true);
+            //line.path.selected = true;
         }
     }
     getUnderMouse(point) {
@@ -432,23 +482,24 @@ class SelectionManager {
         const path = hit.item;
         return this.users.findLineByPath(path);
     }
-    delete(ws) {
+    delete() {
         let pck = new ClientDeleteLines(this.selectedLines);
-        ws.sendPacket(pck);
+        this.ws.sendPacket(pck);
         this.selectedLines.forEach(l => this.users.deleteLine(l.userID, l.lineID));
         this.selectedLines = [];
         this.updateBrushMenu();
         this.updateBoundingBox();
     }
     clear() {
-        this.selectedLines.forEach(l => l.path.selected = false);
+        this.selectedLines.forEach(l => l.selected(false));
         this.selectedLines = [];
         this.updateBrushMenu();
         this.updateBoundingBox();
     }
     move(delta) {
         this.selectedLines.forEach(l => {
-            l.path.position = l.path.position.add(delta);
+            l.moveDelta(delta);
+            //l.path.position = l.path.position.add(delta);
         });
         const pck = new ClientMoveLines(this.selectedLines, delta);
         console.log(delta);
@@ -458,12 +509,12 @@ class SelectionManager {
     updateBrushMenu() {
         if (this.selectedLines.length == 0)
             return;
-        let width = this.selectedLines.map(l => l.path.strokeWidth);
+        let width = this.selectedLines.map(l => l.strokeWidth());
         let firstWidth = width[0];
         if (width.every(value => value == firstWidth)) {
             this.brushMenu.setStrokeWidth(firstWidth);
         }
-        let color = this.selectedLines.map(l => l.path.strokeColor);
+        let color = this.selectedLines.map(l => l.strokeColor());
         let firstColor = color[0];
         if (color.every(value => value == firstColor)) {
             this.brushMenu.setStrokeColor(firstColor);
@@ -473,13 +524,13 @@ class SelectionManager {
         console.log("here 2", this.selectedLines);
         if (!this.contains(this.selectedLines, l)) {
             console.log("insert here");
-            l.path.selected = true;
+            l.selected(true);
             this.selectedLines.push(l);
         }
         else {
             // should we remove this?
             console.log("remove here", this.selectedLines.length);
-            l.path.selected = false;
+            l.selected(false);
             this.selectedLines = this.selectedLines.filter(line => line.lineID != l.lineID);
             console.log("remove here - ", this.selectedLines.length);
         }
@@ -489,10 +540,10 @@ class SelectionManager {
             this.selectedBoundingBox.visible = false;
             return;
         }
-        let min = this.selectedLines[0].path.strokeBounds.center;
+        let min = this.selectedLines[0].strokeBounds().center;
         let max = min;
         this.selectedLines.forEach(l => {
-            const boundingBox = l.path.strokeBounds;
+            const boundingBox = l.strokeBounds();
             const p1 = boundingBox.topLeft;
             const p2 = boundingBox.bottomRight;
             min = paper.Point.min(min, p1);
@@ -510,7 +561,7 @@ class SelectionManager {
     }
     onUIEventStrokeSizeChange(size) {
         this.selectedLines.forEach(l => {
-            l.path.strokeWidth = size;
+            l.updateStrokeWidth(size);
             const pck = new ClientChangeStrokeSize(l, size);
             this.ws.sendPacket(pck);
         });
@@ -520,7 +571,7 @@ class SelectionManager {
     }
     onUIEventStrokeColorChange(color) {
         this.selectedLines.forEach(l => {
-            l.path.strokeColor = color;
+            l.updateStrokeColor(color);
             const pck = new ClientSetStrokeColor(l, color);
             this.ws.sendPacket(pck);
         });
@@ -535,10 +586,55 @@ class SelectionManager {
     selectAll() {
         this.selectedLines = this.users.findAllLines();
         this.selectedLines.forEach(l => {
-            l.path.selected = true;
+            l.selected(true);
         });
         this.updateBrushMenu();
         this.updateBoundingBox();
+    }
+    copy() {
+        this.linesCopied = this.selectedLines.map(l => l.copy());
+    }
+    paste(pathIDGenerator) {
+        const u = this.users.getMyUser();
+        if (!u) {
+            return;
+        }
+        const uid = u.userID;
+        const offset = new paper.Point(20, 20);
+        this.clear();
+        this.linesCopied.forEach(l => {
+            const pathID = pathIDGenerator.getNext();
+            const rawPath = l.rawPath;
+            const width = l.strokeWidth;
+            const color = l.strokeColor;
+            const start = rawPath[0].add(offset);
+            const restPath = [];
+            rawPath.forEach((value, index) => {
+                if (index != 0) {
+                    restPath.push(value.add(offset));
+                }
+            });
+            const path = new paper.Path({
+                segments: [start].concat(restPath),
+                // Select the path, so we can see its segment points:
+                fullySelected: false,
+                strokeWidth: width,
+                strokeColor: color,
+            });
+            const newLine = new DrawLine(path, pathID, uid, [start].concat(restPath));
+            u.addLine(newLine);
+            newLine.simplify();
+            const beginPath = new ClientBeginPath(pathID, start, width, color);
+            const updatePath = new ClientAddPointsPath(pathID, restPath);
+            const endPath = new ClientEndPath(pathID);
+            this.ws.sendPacket(beginPath);
+            this.ws.sendPacket(updatePath);
+            this.ws.sendPacket(endPath);
+            this.selectedLines.push(newLine);
+            newLine.selected(true);
+        });
+        this.updateBoundingBox();
+        this.updateBrushMenu();
     }
 }
 class User {
@@ -557,12 +653,12 @@ class User {
             return;
         }
         for (let point of points) {
-            l.path.add(point);
+            l.addPoint(point);
         }
     }
     endPath(lineID) {
         var _a;
-        (_a = this.findLineById(lineID)) === null || _a === void 0 ? void 0 : _a.path.simplify(10);
+        (_a = this.findLineById(lineID)) === null || _a === void 0 ? void 0 : _a.simplify();
     }
     findLineById(lineID) {
         for (let l of this.lines) {
@@ -577,20 +673,17 @@ class User {
     }
     deleteLine(lineID) {
         var _a;
-        (_a = this.findLineById(lineID)) === null || _a === void 0 ? void 0 : _a.path.remove();
+        (_a = this.findLineById(lineID)) === null || _a === void 0 ? void 0 : _a.remove();
         this.lines = this.lines.filter(myLine => myLine.lineID != lineID);
     }
     moveLine(lineID, delta) {
-        var _a;
         console.log("move line", this.userID);
-        const path = (_a = this.findLineById(lineID)) === null || _a === void 0 ? void 0 : _a.path;
-        if (path) {
-            path.position = path.position.add(delta);
-        }
+        const line = this.findLineById(lineID);
+        line === null || line === void 0 ? void 0 : line.moveDelta(delta);
     }
     findLine(path) {
         for (let line of this.lines) {
-            if (line.path == path) {
+            if (line.isEqual(path)) {
                 return line;
             }
         }
@@ -599,13 +692,13 @@ class User {
     setStrokeSize(lineID, size) {
         const l = this.findLineById(lineID);
         if (l) {
-            l.path.strokeWidth = size;
+            l.updateStrokeWidth(size);
         }
     }
     setStrokeColor(lineID, color) {
         const l = this.findLineById(lineID);
         if (l) {
-            l.path.strokeColor = color;
+            l.updateStrokeColor(color);
         }
     }
     addLine(drawLine) {
@@ -720,6 +813,7 @@ function readPoint(array, offset) {
 }
 class WebSocketHandler {
     constructor() {
+        //private static IP = "ws://localhost:5011/ws";
         this.socket = null;
         this.isConnectionOpen = false;
         this.onConnected = () => { };
@@ -774,8 +868,8 @@ class WebSocketHandler {
         }
     }
 }
-WebSocketHandler.IP = "ws://167.172.190.193:5011/ws";
-class clientAddPointsPath {
+WebSocketHandler.IP = "ws://whiteboard.aaq.dk:5011/ws";
+class ClientAddPointsPath {
     constructor(id, points) {
         this.id = id;
         this.points = points;
@@ -1186,40 +1280,26 @@ class BrushMenu {
 }
 class UIManager {
     constructor(root) {
+        this.panMode = $("#UIPanMode");
+        this.drawMode = $("#UIDrawMode");
+        this.selMode = $("#UISelectMode");
+        this.moveMode = $("#UIMoveSelectedMode");
+        this.active = this.drawMode;
         this.root = root;
         this.brushMenu = new BrushMenu(this);
         // setup the buttons
         this.setupButtons();
     }
     setupButtons() {
-        const panMode = $("#UIPanMode");
-        const drawMode = $("#UIDrawMode");
-        const selMode = $("#UISelectMode");
-        const moveMode = $("#UIMoveSelectedMode");
-        let active = drawMode;
-        panMode.on("click", () => {
-            this.root.setMode(Mode.PAN);
-            active.removeClass("active");
-            active = panMode;
-            active.addClass("active");
+        this.panMode.on("click", () => this.setModePan());
+        this.drawMode.on("click", () => this.setModeDraw());
+        this.selMode.on("click", () => this.setModeSelect());
+        this.moveMode.on("click", () => this.setModeMove());
+        $("#UIDeleteSelectionButton").on("click", () => {
+            this.root.deleteSelection();
         });
-        drawMode.on("click", () => {
-            this.root.setMode(Mode.DRAW);
-            active.removeClass("active");
-            active = drawMode;
-            active.addClass("active");
-        });
-        selMode.on("click", () => {
-            this.root.setMode(Mode.SELECT);
-            active.removeClass("active");
-            active = selMode;
-            active.addClass("active");
-        });
-        moveMode.on("click", () => {
-            this.root.setMode(Mode.MOVE_SELECTED);
-            active.removeClass("active");
-            active = moveMode;
-            active.addClass("active");
+        $("#UIUndoButton").on("click", () => {
+            this.root.undo();
         });
     }
     getStrokeWidth() {
@@ -1237,18 +1317,98 @@ class UIManager {
     onUIStrokeColorChange(color) {
         this.root.onUIEventStrokeColorChange(color);
     }
+    setModeMove() {
+        if (this.root.setMode(Mode.MOVE_SELECTED)) {
+            this.active.removeClass("active");
+            this.active = this.moveMode;
+            this.active.addClass("active");
+        }
+    }
+    setModeSelect() {
+        if (this.root.setMode(Mode.SELECT)) {
+            this.active.removeClass("active");
+            this.active = this.selMode;
+            this.active.addClass("active");
+        }
+    }
+    setModeDraw() {
+        if (this.root.setMode(Mode.DRAW)) {
+            this.active.removeClass("active");
+            this.active = this.drawMode;
+            this.active.addClass("active");
+        }
+    }
+    setModePan() {
+        if (this.root.setMode(Mode.PAN)) {
+            this.active.removeClass("active");
+            this.active = this.panMode;
+            this.active.addClass("active");
+        }
+    }
+}
+const SIMPLIFY_CONST = 5;
+class CopyLine {
+    constructor(rawPath, strokeColor, strokeWidth) {
+        this.rawPath = rawPath;
+        this.strokeColor = strokeColor;
+        this.strokeWidth = strokeWidth;
+    }
 }
 class DrawLine {
-    constructor(path, lineID, userID) {
+    constructor(path, lineID, userID, rawPath) {
         this.path = path;
         this.lineID = lineID;
         this.userID = userID;
+        this.rawPath = rawPath;
     }
     UpdateUserID(userID) {
-        return new DrawLine(this.path, this.lineID, userID);
+        return new DrawLine(this.path, this.lineID, userID, this.rawPath);
     }
     updateLineID(lineID) {
-        return new DrawLine(this.path, lineID, this.userID);
+        return new DrawLine(this.path, lineID, this.userID, this.rawPath);
+    }
+    addPoint(point) {
+        this.path.add(point);
+        this.rawPath.push(point);
+    }
+    copy() {
+        return new CopyLine(this.rawPath, this.path.strokeColor, this.path.strokeWidth);
+    }
+    isInside(rect) {
+        return this.path.isInside(rect);
+    }
+    intersects(shape) {
+        return this.path.intersects(shape);
+    }
+    selected(value) {
+        this.path.selected = value;
+    }
+    moveDelta(delta) {
+        this.path.position = this.path.position.add(delta);
+    }
+    strokeWidth() {
+        return this.path.strokeWidth;
+    }
+    strokeColor() {
+        return this.path.strokeColor;
+    }
+    strokeBounds() {
+        return this.path.strokeBounds;
+    }
+    updateStrokeWidth(size) {
+        this.path.strokeWidth = size;
+    }
+    updateStrokeColor(color) {
+        this.path.strokeColor = color;
+    }
+    isEqual(path) {
+        return this.path == path;
+    }
+    remove() {
+        this.path.remove();
+    }
+    simplify() {
+        this.path.simplify(SIMPLIFY_CONST);
     }
 }
 class UserLine extends DrawLine {
@@ -1260,7 +1420,15 @@ class UserLine extends DrawLine {
             strokeWidth: strokeWidth,
             strokeColor: strokeColor,
         });
-        path.selectedColor = new paper.Color(255, 255, 255, 0);
-        super(path, lineID, userID);
+        //path.selectedColor = new paper.Color(255, 255, 255, 0);
+        super(path, lineID, userID, [pos]);
+    }
+}
+class PathIDGenerator {
+    constructor(start) {
+        this.nextPathID = start;
+    }
+    getNext() {
+        return this.nextPathID++;
     }
 }

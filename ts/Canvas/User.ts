@@ -20,12 +20,12 @@ class User {
         }
 
         for (let point of points) {
-            l.path.add(point)
+            l.addPoint(point)
         }
     }
 
     endPath(lineID: number) {
-        this.findLineById(lineID)?.path.simplify(10);
+        this.findLineById(lineID)?.simplify();
     }
 
     findLineById(lineID: number): DrawLine | null {
@@ -42,7 +42,7 @@ class User {
     }
 
     deleteLine(lineID: number) {
-        this.findLineById(lineID)?.path.remove();
+        this.findLineById(lineID)?.remove();
         this.lines = this.lines.filter(myLine =>
             myLine.lineID != lineID
         )
@@ -50,15 +50,13 @@ class User {
 
     moveLine(lineID: number, delta: paper.Point) {
         console.log("move line", this.userID)
-        const path = this.findLineById(lineID)?.path;
-        if (path) {
-            path.position = path.position.add(delta)
-        }
+        const line = this.findLineById(lineID);
+        line?.moveDelta(delta)
     }
 
     findLine(path: paper.Item): DrawLine | null {
         for (let line of this.lines) {
-            if (line.path == path) {
+            if (line.isEqual(path)) {
                 return line;
             }
         }
@@ -68,14 +66,14 @@ class User {
     setStrokeSize(lineID: number, size: number) {
         const l = this.findLineById(lineID);
         if (l) {
-            l.path.strokeWidth = size
+            l.updateStrokeWidth(size)
         }
     }
 
     setStrokeColor(lineID: number, color: paper.Color) {
         const l = this.findLineById(lineID);
         if (l) {
-            l.path.strokeColor = color
+            l.updateStrokeColor(color)
         }
     }
 

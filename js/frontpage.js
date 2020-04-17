@@ -846,7 +846,6 @@ function readPoint(array, offset) {
 }
 class WebSocketHandler {
     constructor() {
-        //private static IP = "ws://localhost:5011/ws";
         this.socket = null;
         this.isConnectionOpen = false;
         this.onConnected = () => { };
@@ -901,7 +900,8 @@ class WebSocketHandler {
         }
     }
 }
-WebSocketHandler.IP = "ws://whiteboard.aaq.dk:5011/ws";
+//private static IP = "ws://whiteboard.aaq.dk:5011/ws";
+WebSocketHandler.IP = "ws://localhost:5011/ws";
 class ClientAddPointsPath {
     constructor(id, points) {
         this.id = id;

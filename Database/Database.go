@@ -136,6 +136,7 @@ func SaveLine(canvasID int, l *UpdateLine) {
 			fmt.Println("delete line error ", err)
 		}
 	} else { /* not deleted */
+		fmt.Print("moved save")
 		stmt := `
 			UPDATE drawLine
 			SET color = $3, width = $4, points = $5

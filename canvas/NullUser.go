@@ -23,6 +23,7 @@ func (u *NullUser) moveLine(lineID int32, delta util.Point) bool {
 		for i, p := range points {
 			points[i] = p.Add(delta)
 		}
+		line.haveDatabaseUpdate = true
 	}
 	return line != nil
 }

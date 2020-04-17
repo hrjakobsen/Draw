@@ -83,6 +83,7 @@ class Root {
         this.users = new Users(this.ws);
         this.pathIDGenerator = new PathIDGenerator(0);
         this.mode = Mode.DRAW;
+        this.tempMode = null;
         /* my paths */
         this.pathID = 0;
         this.path = null;
@@ -99,6 +100,9 @@ class Root {
         paper.view.onResize = event => this.onResize(event);
         paper.view.onMouseDrag = event => this.onMouseDragged(event);
         paper.view.onDoubleClick = event => this.onDoubleClick(event);
+        $(document).on("contextmenu", () => {
+            return false;
+        });
         const tool = new paper.Tool();
         tool.onKeyDown = event => this.onKeyDown(event);
         setInterval(() => this.onUpdate(), 100); // every 100 ms we should maximum send
@@ -116,23 +120,33 @@ class Root {
     onMouseDown(ev) {
         this.mouseDown = true;
         this.mouseDragged = false;
-        if (this.mode == Mode.DRAW) {
-            this.selection.clear();
-            this.path = new paper.Path({
-                segments: [ev.point],
-                // Select the path, so we can see its segment points:
-                fullySelected: false,
-                strokeWidth: this.ui.getStrokeWidth(),
-                strokeColor: this.ui.getColor(),
-            });
-            this.rawPath = [ev.point];
-            this.pathID = this.pathIDGenerator.getNext();
-            this.ws.sendPacket(new ClientBeginPath(this.pathID, ev.point, this.ui.getStrokeWidth(), this.ui.getColor()));
+        if (ev.event.button == 0) { // main mouse button clicked
+            if (this.mode == Mode.DRAW) {
+                this.selection.clear();
+                this.path = new paper.Path({
+                    segments: [ev.point],
+                    // Select the path, so we can see its segment points:
+                    fullySelected: false,
+                    strokeWidth: this.ui.getStrokeWidth(),
+                    strokeColor: this.ui.getColor(),
+                });
+                this.rawPath = [ev.point];
+                this.pathID = this.pathIDGenerator.getNext();
+                this.ws.sendPacket(new ClientBeginPath(this.pathID, ev.point, this.ui.getStrokeWidth(), this.ui.getColor()));
+            }
+            else if (this.mode == Mode.PAN) {
+                this.camera.beginPan(ev.point);
+            }
+            else if (this.mode == Mode.SELECT) {
+                this.selection.startSelection(ev.point);
+            }
         }
-        else if (this.mode == Mode.PAN) {
+        else if (ev.event.button == 1) { // the scroll wheel clicked
+            this.tempMode = Mode.PAN;
             this.camera.beginPan(ev.point);
         }
-        else if (this.mode == Mode.SELECT) {
+        else if (ev.event.button == 2) { // the right button
+            this.tempMode = Mode.SELECT;
             this.selection.startSelection(ev.point);
         }
         console.log("mouseDown");
@@ -140,7 +154,17 @@ class Root {
     onMouseUp(ev) {
         var _a;
         if (this.mouseDown) {
-            if (this.mode == Mode.DRAW) {
+            if (this.tempMode == Mode.SELECT) {
+                this.selection.onMouseUp(ev, this.mouseDragged);
+                this.ui.setModeMove();
+                ev.event.preventDefault();
+            }
+            else if (this.tempMode == Mode.PAN) {
+                // do nothing
+                // this.camera.endPan()
+                ev.event.preventDefault();
+            }
+            else if (this.mode == Mode.DRAW) {
                 this.ws.sendPacket(new ClientEndPath(this.pathID));
                 if (this.path != null) {
                     const drawLine = new DrawLine(this.path, this.pathID, this.users.getMyUserID(), this.rawPath);
@@ -157,21 +181,29 @@ class Root {
                 }
                 this.path = null;
             }
+            else if (this.mode == Mode.SELECT) {
+                this.selection.onMouseUp(ev, this.mouseDragged);
+                this.mouseDown = false;
+                this.ui.setModeMove();
+            }
             else if (this.mode == Mode.PAN) {
                 // do nothing
                 // this.camera.endPan()
             }
-            else if (this.mode == Mode.SELECT) {
-                this.selection.onMouseUp(ev, this.mouseDragged);
-                this.ui.setModeMove();
-            }
             console.log("mouseUp");
         }
+        this.tempMode = null;
         this.mouseDown = false;
     }
     onMouseDragged(ev) {
         this.mouseDragged = true;
-        if (this.mode == Mode.DRAW) {
+        if (this.tempMode == Mode.PAN) {
+            this.camera.moveByPan(ev.point);
+        }
+        else if (this.tempMode == Mode.SELECT) {
+            this.selection.onMouseDragged(ev.point);
+        }
+        else if (this.mode == Mode.DRAW) {
             if (this.path != null) {
                 this.ws.sendPacket(new ClientAddPointsPath(this.pathID, [ev.point]));
                 this.path.add(ev.point);
@@ -183,6 +215,7 @@ class Root {
         }
         else if (this.mode == Mode.SELECT) {
             this.selection.onMouseDragged(ev.point);
+            console.log("SEL dragged");
         }
         else if (this.mode == Mode.MOVE_SELECTED) {
             this.selection.move(ev.delta);
@@ -190,7 +223,7 @@ class Root {
     }
     onMouseMove(ev) {
         this.lastMousePosition = ev.point;
-        if (this.mode == Mode.SELECT) {
+        if (this.mode == Mode.SELECT || this.tempMode == Mode.SELECT) {
             this.selection.onMouseMove(ev.point, this.mouseDown);
         }
     }
@@ -868,7 +901,7 @@ class WebSocketHandler {
         }
     }
 }
-WebSocketHandler.IP = "ws://whiteboard.aaq.dk:5011/ws";
+WebSocketHandler.IP = "ws://whiteboard.aaq.dk/ws";
 class ClientAddPointsPath {
     constructor(id, points) {
         this.id = id;

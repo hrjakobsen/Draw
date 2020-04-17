@@ -901,7 +901,7 @@ class WebSocketHandler {
         }
     }
 }
-WebSocketHandler.IP = "ws://whiteboard.aaq.dk/ws";
+WebSocketHandler.IP = "ws://whiteboard.aaq.dk:5011/ws";
 class ClientAddPointsPath {
     constructor(id, points) {
         this.id = id;

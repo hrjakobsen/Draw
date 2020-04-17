@@ -231,7 +231,8 @@ class Root {
         this.background.onMove();
     }
     onKeyDown(event) {
-        if (event.key == "delete") {
+        console.log(event.key);
+        if (event.key == "delete" || event.key == "backspace") {
             this.deleteSelection();
         }
         else if (event.key == "escape") {
@@ -262,7 +263,7 @@ class Root {
         else if (event.key == "1") {
             this.ui.setModePan();
         }
-        else if (event.key == "2" || event.key == "p") {
+        else if (event.key == "2" || event.key == "p" || event.key == "d") {
             this.ui.setModeDraw();
         }
         else if (event.key == "3" || event.key == "s") {
@@ -271,7 +272,7 @@ class Root {
         else if (event.key == "4" || event.key == "m") {
             this.ui.setModeMove();
         }
-        else if (event.key == "5" || event.key == "d") {
+        else if (event.key == "5") {
             this.deleteSelection();
         }
         else if (event.key == "6") {

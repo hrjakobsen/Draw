@@ -7,6 +7,7 @@ class UIManager {
     private readonly drawMode = $("#UIDrawMode");
     private readonly selMode = $("#UISelectMode");
     private readonly moveMode = $("#UIMoveSelectedMode");
+    private readonly shareCursorMode = $("#UIButtonShareCursorMode");
     private active: JQuery<HTMLElement> = this.drawMode;
 
     constructor(root: Root) {
@@ -22,6 +23,8 @@ class UIManager {
         this.drawMode.on("click", () => this.setModeDraw());
         this.selMode.on("click", () => this.setModeSelect());
         this.moveMode.on("click", () => this.setModeMove());
+
+        this.shareCursorMode.on("click", () => this.setModeShareCursor())
 
         $("#UIDeleteSelectionButton").on("click", () => {
             this.root.deleteSelection()
@@ -82,6 +85,14 @@ class UIManager {
         if (this.root.setMode(Mode.PAN)) {
             this.active.removeClass("active");
             this.active = this.panMode;
+            this.active.addClass("active");
+        }
+    }
+
+    setModeShareCursor() {
+        if (this.root.setMode(Mode.SHARE_CURSOR)) {
+            this.active.removeClass("active");
+            this.active = this.shareCursorMode;
             this.active.addClass("active");
         }
     }

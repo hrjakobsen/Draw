@@ -76,6 +76,7 @@ var Mode;
     Mode[Mode["DRAW"] = 1] = "DRAW";
     Mode[Mode["PAN"] = 2] = "PAN";
     Mode[Mode["MOVE_SELECTED"] = 3] = "MOVE_SELECTED";
+    Mode[Mode["SHARE_CURSOR"] = 4] = "SHARE_CURSOR";
 })(Mode || (Mode = {}));
 class Root {
     constructor() {
@@ -183,8 +184,8 @@ class Root {
             }
             else if (this.mode == Mode.SELECT) {
                 this.selection.onMouseUp(ev, this.mouseDragged);
-                this.mouseDown = false;
-                this.ui.setModeMove();
+                //this.mouseDown = false;
+                //this.ui.setModeMove()
             }
             else if (this.mode == Mode.PAN) {
                 // do nothing
@@ -220,11 +221,19 @@ class Root {
         else if (this.mode == Mode.MOVE_SELECTED) {
             this.selection.move(ev.delta);
         }
+        else if (this.mode == Mode.SHARE_CURSOR) {
+            const pck = new ClientUpdateCursorPosition(ev.point);
+            this.ws.sendPacket(pck);
+        }
     }
     onMouseMove(ev) {
         this.lastMousePosition = ev.point;
         if (this.mode == Mode.SELECT || this.tempMode == Mode.SELECT) {
             this.selection.onMouseMove(ev.point, this.mouseDown);
+        }
+        else if (this.mode == Mode.SHARE_CURSOR) {
+            const pck = new ClientUpdateCursorPosition(ev.point);
+            this.ws.sendPacket(pck);
         }
     }
     onResize(event) {
@@ -273,9 +282,12 @@ class Root {
             this.ui.setModeMove();
         }
         else if (event.key == "5") {
-            this.deleteSelection();
+            this.ui.setModeShareCursor();
         }
         else if (event.key == "6") {
+            this.deleteSelection();
+        }
+        else if (event.key == "7") {
             this.undo();
         }
     }
@@ -330,6 +342,15 @@ class Root {
             case 9 /* RemovedUser */:
                 this.handleRemovedUser(pck);
                 break;
+            case 10 /* StartSharingCursor */:
+                this.handleStartSharingCursor(pck);
+                break;
+            case 11 /* UpdateCursorPosition */:
+                this.handleUpdateCursorPosition(pck);
+                break;
+            case 12 /* StopSharingCursor */:
+                this.handleStopSharingCursor(pck);
+                break;
         }
     }
     handleSetUserID(pck) {
@@ -371,6 +392,14 @@ class Root {
     }
     setMode(mode) {
         if (!this.mouseDown) {
+            if (this.mode == Mode.SHARE_CURSOR && mode != Mode.SHARE_CURSOR) {
+                const pck = new ClientStopCursorSharing();
+                this.ws.sendPacket(pck);
+            }
+            else if (this.mode != Mode.SHARE_CURSOR && mode == Mode.SHARE_CURSOR) {
+                const pck = new ClientStartCursorSharing(this.lastMousePosition);
+                this.ws.sendPacket(pck);
+            }
             this.mode = mode;
         }
         return !this.mouseDown;
@@ -405,6 +434,18 @@ class Root {
             const pck = new ClientDeleteLines([line]);
             this.ws.sendPacket(pck);
         }
+    }
+    handleStartSharingCursor(pck) {
+        var _a;
+        (_a = this.users.findUserByID(pck.userID)) === null || _a === void 0 ? void 0 : _a.startSharingCursor(pck.position);
+    }
+    handleUpdateCursorPosition(pck) {
+        var _a;
+        (_a = this.users.findUserByID(pck.userID)) === null || _a === void 0 ? void 0 : _a.updateCursorPosition(pck.position);
+    }
+    handleStopSharingCursor(pck) {
+        var _a;
+        (_a = this.users.findUserByID(pck.userID)) === null || _a === void 0 ? void 0 : _a.stopSharingCursor();
     }
 }
 class SelectionManager {
@@ -673,6 +714,9 @@ class SelectionManager {
 }
 class User {
     constructor(userID) {
+        this.mouseColor = new paper.Color(0, 0, 0, 50);
+        this.mouseSize = 10;
+        this.mouse = null;
         this.userID = userID;
         this.lines = [];
     }
@@ -749,6 +793,30 @@ class User {
             this.lines.push(lines[i].UpdateUserID(this.userID));
         }
     }
+    startSharingCursor(position) {
+        if (this.mouse == null) {
+            this.mouse = new paper.Path.Circle(position, this.mouseSize);
+            this.mouse.fillColor = this.mouseColor;
+        }
+        else {
+            this.mouse.position = position;
+        }
+    }
+    updateCursorPosition(position) {
+        if (this.mouse) {
+            this.mouse.position = position;
+        }
+    }
+    stopSharingCursor() {
+        var _a;
+        (_a = this.mouse) === null || _a === void 0 ? void 0 : _a.remove();
+        this.mouse = null;
+    }
+    onDelete() {
+        var _a;
+        (_a = this.mouse) === null || _a === void 0 ? void 0 : _a.remove();
+        this.mouse = null;
+    }
 }
 class Users {
     constructor(ws) {
@@ -815,6 +883,7 @@ class Users {
                 }
             }
         }
+        u.onDelete();
         nullUser.setOwner(lines);
     }
 }
@@ -1023,6 +1092,35 @@ class ClientSetStrokeColor {
         return pck;
     }
 }
+class ClientStartCursorSharing {
+    constructor(position) {
+        this.position = position;
+    }
+    getPacketAsArray() {
+        const pck = new Uint8Array(1 + 8);
+        pck[0] = 7 /* startShareCursor */;
+        packetWritePoint(this.position, pck, 1);
+        return pck;
+    }
+}
+class ClientStopCursorSharing {
+    getPacketAsArray() {
+        const pck = new Uint8Array(1);
+        pck[0] = 9 /* stopShareCursor */;
+        return pck;
+    }
+}
+class ClientUpdateCursorPosition {
+    constructor(position) {
+        this.position = position;
+    }
+    getPacketAsArray() {
+        const pck = new Uint8Array(1 + 8);
+        pck[0] = 8 /* updateCursorPosition */;
+        packetWritePoint(this.position, pck, 1);
+        return pck;
+    }
+}
 class ServerAddPointsPathPacket {
     constructor(rawMsg) {
         this.userID = rawMsg[1];
@@ -1134,6 +1232,12 @@ function createPacket(rawMsg) {
             return new ServerSetStrokeColorPacket(rawMsg);
         case 9 /* RemovedUser */:
             return new ServerRemovedUserPacket(rawMsg);
+        case 10 /* StartSharingCursor */:
+            return new ServerStartSharingCursorPacket(rawMsg);
+        case 11 /* UpdateCursorPosition */:
+            return new ServerUpdateCursorPositionPacket(rawMsg);
+        case 12 /* StopSharingCursor */:
+            return new ServerStopSharingCursorPacket(rawMsg);
         default:
             break;
     }
@@ -1192,6 +1296,32 @@ class ServerSetUserID {
     }
     getPacketType() {
         return 0 /* SetUserID */;
+    }
+}
+class ServerStartSharingCursorPacket {
+    constructor(rawMsg) {
+        this.userID = rawMsg[1];
+        this.position = readPoint(rawMsg, 2);
+    }
+    getPacketType() {
+        return 10 /* StartSharingCursor */;
+    }
+}
+class ServerStopSharingCursorPacket {
+    constructor(rawMsg) {
+        this.userID = rawMsg[1];
+    }
+    getPacketType() {
+        return 12 /* StopSharingCursor */;
+    }
+}
+class ServerUpdateCursorPositionPacket {
+    constructor(rawMsg) {
+        this.userID = rawMsg[1];
+        this.position = readPoint(rawMsg, 2);
+    }
+    getPacketType() {
+        return 11 /* UpdateCursorPosition */;
     }
 }
 class Background {
@@ -1318,6 +1448,7 @@ class UIManager {
         this.drawMode = $("#UIDrawMode");
         this.selMode = $("#UISelectMode");
         this.moveMode = $("#UIMoveSelectedMode");
+        this.shareCursorMode = $("#UIButtonShareCursorMode");
         this.active = this.drawMode;
         this.root = root;
         this.brushMenu = new BrushMenu(this);
@@ -1329,6 +1460,7 @@ class UIManager {
         this.drawMode.on("click", () => this.setModeDraw());
         this.selMode.on("click", () => this.setModeSelect());
         this.moveMode.on("click", () => this.setModeMove());
+        this.shareCursorMode.on("click", () => this.setModeShareCursor());
         $("#UIDeleteSelectionButton").on("click", () => {
             this.root.deleteSelection();
         });
@@ -1376,6 +1508,13 @@ class UIManager {
         if (this.root.setMode(Mode.PAN)) {
             this.active.removeClass("active");
             this.active = this.panMode;
+            this.active.addClass("active");
+        }
+    }
+    setModeShareCursor() {
+        if (this.root.setMode(Mode.SHARE_CURSOR)) {
+            this.active.removeClass("active");
+            this.active = this.shareCursorMode;
             this.active.addClass("active");
         }
     }

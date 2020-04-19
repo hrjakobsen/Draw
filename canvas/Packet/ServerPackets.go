@@ -5,16 +5,19 @@ import (
 )
 
 const (
-	ServerSetUserID      = 0
-	ServerAddUser        = 1
-	ServerBeginPath      = 2
-	ServerEndPath        = 3
-	ServerAddPointsPath  = 4
-	ServerDeleteLines    = 5
-	ServerMoveLines      = 6
-	ServerSetStrokeSize  = 7
-	ServerSetStrokeColor = 8
-	ServerRemovedUser    = 9
+	ServerSetUserID            = 0
+	ServerAddUser              = 1
+	ServerBeginPath            = 2
+	ServerEndPath              = 3
+	ServerAddPointsPath        = 4
+	ServerDeleteLines          = 5
+	ServerMoveLines            = 6
+	ServerSetStrokeSize        = 7
+	ServerSetStrokeColor       = 8
+	ServerRemovedUser          = 9
+	ServerStartSharingCursor   = 10
+	ServerUpdateCursorPosition = 11
+	ServerStopSharingCursor    = 12
 )
 
 type ServerPacket interface {
@@ -189,5 +192,42 @@ func (p *ServerRemovedUserPacket) ToArray() []byte {
 		writeInt32(l.NewLineID, pck, offset)
 		offset += 4
 	}
+	return pck
+}
+
+type ServerStartSharingCursorPacket struct {
+	UserID   uint8
+	Position util.Point
+}
+
+func (p *ServerStartSharingCursorPacket) ToArray() []byte {
+	pck := make([]byte, 1+1+8)
+	pck[0] = ServerStartSharingCursor
+	pck[1] = p.UserID
+	writePoint(p.Position, pck, 2)
+	return pck
+}
+
+type ServerUpdateCursorPositionPacket struct {
+	UserID   uint8
+	Position util.Point
+}
+
+func (p *ServerUpdateCursorPositionPacket) ToArray() []byte {
+	pck := make([]byte, 1+1+8)
+	pck[0] = ServerUpdateCursorPosition
+	pck[1] = p.UserID
+	writePoint(p.Position, pck, 2)
+	return pck
+}
+
+type ServerStopSharingCursorPacket struct {
+	UserID uint8
+}
+
+func (p *ServerStopSharingCursorPacket) ToArray() []byte {
+	pck := make([]byte, 1+1)
+	pck[0] = ServerStopSharingCursor
+	pck[1] = p.UserID
 	return pck
 }

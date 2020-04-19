@@ -9,6 +9,9 @@ const enum ServerPacketIDs {
     SetStrokeSize = 7,
     SetStrokeColor = 8,
     RemovedUser = 9,
+    StartSharingCursor = 10,
+    UpdateCursorPosition = 11,
+    StopSharingCursor = 12,
 }
 
 class UpdatedLine {
@@ -48,6 +51,12 @@ function createPacket(rawMsg: Uint8Array): ServerPacket {
             return new ServerSetStrokeColorPacket(rawMsg);
         case ServerPacketIDs.RemovedUser:
             return new ServerRemovedUserPacket(rawMsg);
+        case ServerPacketIDs.StartSharingCursor:
+            return new ServerStartSharingCursorPacket(rawMsg);
+        case ServerPacketIDs.UpdateCursorPosition:
+            return new ServerUpdateCursorPositionPacket(rawMsg);
+        case ServerPacketIDs.StopSharingCursor:
+            return new ServerStopSharingCursorPacket(rawMsg);
         default:
             break;
     }

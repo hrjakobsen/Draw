@@ -6,6 +6,9 @@ const enum ClientPacketIDs {
     moveLines = 4,
     setStrokeSize = 5,
     setStrokeColor = 6,
+    startShareCursor = 7,
+    updateCursorPosition = 8,
+    stopShareCursor = 9,
 }
 
 interface ClientPacket {

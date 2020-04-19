@@ -18,6 +18,4 @@ class ClientSetStrokeColor implements ClientPacket {
         console.log("client set color", this.color);
         return pck;
     }
-
-
 }

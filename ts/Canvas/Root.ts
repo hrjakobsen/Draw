@@ -6,6 +6,7 @@ enum Mode {
     DRAW = 1,
     PAN = 2,
     MOVE_SELECTED = 3,
+    SHARE_CURSOR = 4,
 }
 
 class Root {
@@ -146,8 +147,8 @@ class Root {
                 this.path = null;
             } else if (this.mode == Mode.SELECT) {
                 this.selection.onMouseUp(ev, this.mouseDragged);
-                this.mouseDown = false;
-                this.ui.setModeMove()
+                //this.mouseDown = false;
+                //this.ui.setModeMove()
             } else if (this.mode == Mode.PAN) {
                 // do nothing
                 // this.camera.endPan()
@@ -182,6 +183,9 @@ class Root {
             console.log("SEL dragged")
         } else if (this.mode == Mode.MOVE_SELECTED) {
             this.selection.move(ev.delta)
+        } else if (this.mode == Mode.SHARE_CURSOR) {
+            const pck = new ClientUpdateCursorPosition(ev.point)
+            this.ws.sendPacket(pck)
         }
     }
 
@@ -189,6 +193,9 @@ class Root {
         this.lastMousePosition = ev.point
         if (this.mode == Mode.SELECT || this.tempMode == Mode.SELECT) {
             this.selection.onMouseMove(ev.point, this.mouseDown)
+        } else if (this.mode == Mode.SHARE_CURSOR) {
+            const pck = new ClientUpdateCursorPosition(ev.point)
+            this.ws.sendPacket(pck)
         }
     }
 
@@ -230,8 +237,10 @@ class Root {
         } else if (event.key == "4" || event.key == "m") {
             this.ui.setModeMove()
         } else if (event.key == "5") {
-            this.deleteSelection()
+            this.ui.setModeShareCursor()
         } else if (event.key == "6") {
+            this.deleteSelection()
+        } else if (event.key == "7") {
             this.undo()
         }
     }
@@ -291,6 +300,16 @@ class Root {
             case ServerPacketIDs.RemovedUser:
                 this.handleRemovedUser(<ServerRemovedUserPacket>pck);
                 break;
+            case ServerPacketIDs.StartSharingCursor:
+                this.handleStartSharingCursor(<ServerStartSharingCursorPacket>pck);
+                break;
+            case ServerPacketIDs.UpdateCursorPosition:
+                this.handleUpdateCursorPosition(<ServerUpdateCursorPositionPacket>pck);
+                break;
+            case ServerPacketIDs.StopSharingCursor:
+                this.handleStopSharingCursor(<ServerStopSharingCursorPacket>pck);
+                break;
+
         }
 
     }
@@ -338,6 +357,13 @@ class Root {
 
     setMode(mode: Mode): boolean {
         if (!this.mouseDown) {
+            if (this.mode == Mode.SHARE_CURSOR && mode != Mode.SHARE_CURSOR) {
+                const pck = new ClientStopCursorSharing()
+                this.ws.sendPacket(pck)
+            } else if (this.mode != Mode.SHARE_CURSOR && mode == Mode.SHARE_CURSOR) {
+                const pck = new ClientStartCursorSharing(this.lastMousePosition)
+                this.ws.sendPacket(pck)
+            }
             this.mode = mode;
         }
         return !this.mouseDown
@@ -376,5 +402,17 @@ class Root {
             const pck = new ClientDeleteLines([line]);
             this.ws.sendPacket(pck);
         }
+    }
+
+    private handleStartSharingCursor(pck: ServerStartSharingCursorPacket) {
+        this.users.findUserByID(pck.userID)?.startSharingCursor(pck.position)
+    }
+
+    private handleUpdateCursorPosition(pck: ServerUpdateCursorPositionPacket) {
+        this.users.findUserByID(pck.userID)?.updateCursorPosition(pck.position)
+    }
+
+    private handleStopSharingCursor(pck: ServerStopSharingCursorPacket) {
+        this.users.findUserByID(pck.userID)?.stopSharingCursor()
     }
 }

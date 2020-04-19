@@ -122,7 +122,7 @@ func (c *Canvas) onConnected(newUser *User) {
 		oldUserPck := &Packet.ServerAddUserPacket{UserID: user.id()}
 		newUser.sendPacket(oldUserPck)
 		user.sendPacket(pck)
-		user.sendLinesTo(newUser)
+		user.sendInformationTo(newUser)
 	}
 	fmt.Println("user", newUser.userID, " got data the canvas data")
 }
@@ -154,6 +154,12 @@ func (c *Canvas) handlePacket(data *UserPacket) {
 		c.setStrokeSize(pck.(*Packet.ClientSetStrokeSizePacket), data.user)
 	case Packet.ClientSetStrokeColor:
 		c.setStrokeColor(pck.(*Packet.ClientSetStrokeColorPacket), data.user)
+	case Packet.ClientStartSharingCursor:
+		c.startSharingCursor(pck.(*Packet.ClientStartSharingCursorPacket), data.user)
+	case Packet.ClientUpdateCursorPosition:
+		c.updateCursorPosition(pck.(*Packet.ClientUpdateCursorPositionPacket), data.user)
+	case Packet.ClientStopSharingCursor:
+		c.stopSharingCursor(pck.(*Packet.ClientStopSharingCursorPacket), data.user)
 	default:
 		fmt.Println("unknown packet received " + strconv.Itoa(int(pck.GetPacketType())))
 	}
@@ -312,4 +318,31 @@ func (c *Canvas) getAllUsers() []Userlike {
 		u = append(u, user)
 	}
 	return u
+}
+
+func (c *Canvas) startSharingCursor(packet *Packet.ClientStartSharingCursorPacket, user *User) {
+	user.sharingCursor(true)
+	user.cursorPosition(packet.Point)
+	pck := &Packet.ServerStartSharingCursorPacket{
+		UserID:   user.userID,
+		Position: packet.Point,
+	}
+	c.sendPacketToAllExcept(pck, user.userID)
+}
+
+func (c *Canvas) updateCursorPosition(packet *Packet.ClientUpdateCursorPositionPacket, user *User) {
+	user.cursorPosition(packet.Point)
+	pck := &Packet.ServerUpdateCursorPositionPacket{
+		UserID:   user.userID,
+		Position: packet.Point,
+	}
+	c.sendPacketToAllExcept(pck, user.userID)
+}
+
+func (c *Canvas) stopSharingCursor(packet *Packet.ClientStopSharingCursorPacket, user *User) {
+	user.sharingCursor(false)
+	pck := &Packet.ServerStopSharingCursorPacket{
+		UserID: user.userID,
+	}
+	c.sendPacketToAllExcept(pck, user.userID)
 }

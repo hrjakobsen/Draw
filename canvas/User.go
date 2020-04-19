@@ -24,7 +24,9 @@ type User struct {
 
 	userID uint8
 
-	lines []*UserLine
+	lines                 []*UserLine
+	isSharingCursor       bool
+	currentCursorPosition util.Point
 }
 
 type UserLine struct {
@@ -61,7 +63,9 @@ func CreateUser(con *websocket.Conn, userID uint8, packetReceivedChannel chan *U
 
 		userID: userID,
 
-		lines: make([]*UserLine, 0),
+		lines:                 make([]*UserLine, 0),
+		isSharingCursor:       false,
+		currentCursorPosition: util.Point{},
 	}
 
 	go u.readSocket()
@@ -225,7 +229,7 @@ func (u *User) findLine(lineID int32) *UserLine {
 	return nil
 }
 
-func (u *User) sendLinesTo(user *User) {
+func (u *User) sendInformationTo(newUser *User) {
 	queue := make([]Packet.ServerPacket, 0)
 	for _, l := range u.lines {
 		if l.deleted {
@@ -239,7 +243,7 @@ func (u *User) sendLinesTo(user *User) {
 			StrokeColor: l.strokeColor,
 		}
 
-		// user.sendPacket(create)
+		// newUser.sendPacket(create)
 		queue = append(queue, create)
 
 		p := l.points[1:]
@@ -258,10 +262,18 @@ func (u *User) sendLinesTo(user *User) {
 		queue = append(queue, end)
 	}
 
+	if u.isSharingCursor {
+		pck := &Packet.ServerStartSharingCursorPacket{
+			UserID:   u.userID,
+			Position: u.currentCursorPosition,
+		}
+		queue = append(queue, pck)
+	}
+
 	// now we're not blocking the main thread
 	go func() {
 		for _, pck := range queue {
-			user.sendPacket(pck)
+			newUser.sendPacket(pck)
 			time.Sleep(time.Millisecond)
 		}
 	}()
@@ -367,4 +379,12 @@ func (u *User) save(canvasID int) {
 
 func (c *User) id() uint8 {
 	return c.userID
+}
+
+func (u *User) sharingCursor(b bool) {
+	u.isSharingCursor = b
+}
+
+func (u *User) cursorPosition(point util.Point) {
+	u.currentCursorPosition = point
 }

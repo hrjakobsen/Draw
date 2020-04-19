@@ -7,13 +7,16 @@ import (
 )
 
 const (
-	ClientBeginPath      = 0
-	ClientEndPath        = 1
-	ClientAddPointsPath  = 2
-	ClientDeleteLines    = 3
-	ClientMoveLines      = 4
-	ClientSetStrokeSize  = 5
-	ClientSetStrokeColor = 6
+	ClientBeginPath            = 0
+	ClientEndPath              = 1
+	ClientAddPointsPath        = 2
+	ClientDeleteLines          = 3
+	ClientMoveLines            = 4
+	ClientSetStrokeSize        = 5
+	ClientSetStrokeColor       = 6
+	ClientStartSharingCursor   = 7
+	ClientUpdateCursorPosition = 8
+	ClientStopSharingCursor    = 9
 )
 
 type ClientPacket interface {
@@ -229,9 +232,9 @@ func CreateClientSetStrokeColorPacket(message []byte) (ClientPacket, []byte, err
 	}
 	userID := message[1]
 	lineID := readInt32(message, 2)
-	r := message[6 + 0]
-	g := message[6 + 1]
-	b := message[6 + 2]
+	r := message[6+0]
+	g := message[6+1]
+	b := message[6+2]
 	res := &ClientSetStrokeColorPacket{
 		UserID: userID,
 		LineID: lineID,
@@ -241,5 +244,62 @@ func CreateClientSetStrokeColorPacket(message []byte) (ClientPacket, []byte, err
 			B: b,
 		},
 	}
+	return res, message[size:], nil
+}
+
+type ClientStartSharingCursorPacket struct {
+	Point util.Point
+}
+
+func (c *ClientStartSharingCursorPacket) GetPacketType() uint8 {
+	return ClientStartSharingCursor
+}
+
+func CreateClientStartSharingCursorPacket(message []byte) (ClientPacket, []byte, error) {
+	size := 1 + 8
+	if len(message) < size {
+		return nil, nil, errors.New("CreateClientSharingCursorPacket not length " + strconv.Itoa(size) + " got " + strconv.Itoa(len(message)))
+	}
+
+	point := readPoint(message, 1)
+	res := &ClientStartSharingCursorPacket{
+		Point: point,
+	}
+
+	return res, message[size:], nil
+}
+
+type ClientUpdateCursorPositionPacket struct {
+	Point util.Point
+}
+
+func (c *ClientUpdateCursorPositionPacket) GetPacketType() uint8 {
+	return ClientUpdateCursorPosition
+}
+
+func CreateClientUpdateCursorPositionPacket(message []byte) (ClientPacket, []byte, error) {
+	size := 1 + 8
+	if len(message) < size {
+		return nil, nil, errors.New("CreateClientUpdateCursorPositionPacket not length " + strconv.Itoa(size) + " got " + strconv.Itoa(len(message)))
+	}
+
+	point := readPoint(message, 1)
+	res := &ClientUpdateCursorPositionPacket{
+		Point: point,
+	}
+
+	return res, message[size:], nil
+}
+
+type ClientStopSharingCursorPacket struct {
+}
+
+func (c *ClientStopSharingCursorPacket) GetPacketType() uint8 {
+	return ClientStopSharingCursor
+}
+
+func CreateClientStopSharingCursorPacket(message []byte) (ClientPacket, []byte, error) {
+	size := 1
+	res := &ClientStopSharingCursorPacket{}
 	return res, message[size:], nil
 }

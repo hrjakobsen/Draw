@@ -79,6 +79,8 @@ class Users {
                 }
             }
         }
+        u.onDelete()
+
         nullUser.setOwner(lines)
     }
 }

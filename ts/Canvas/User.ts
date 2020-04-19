@@ -2,6 +2,10 @@ class User {
     readonly userID: number;
     private lines: DrawLine[];
 
+    private mouseColor: paper.Color = new paper.Color(0, 0, 0, 50)
+    private mouseSize: number = 10
+    private mouse: paper.Path | null = null
+
     constructor(userID: number) {
         this.userID = userID;
         this.lines = [];
@@ -93,5 +97,30 @@ class User {
         for (let i = 0; i < lines.length; i++) {
             this.lines.push(lines[i].UpdateUserID(this.userID))
         }
+    }
+
+    startSharingCursor(position: paper.Point) {
+        if (this.mouse == null) {
+            this.mouse = new paper.Path.Circle(position, this.mouseSize);
+            this.mouse.fillColor = this.mouseColor;
+        } else {
+            this.mouse.position = position;
+        }
+    }
+
+    updateCursorPosition(position: paper.Point) {
+        if (this.mouse) {
+            this.mouse.position = position
+        }
+    }
+
+    stopSharingCursor() {
+        this.mouse?.remove();
+        this.mouse = null;
+    }
+
+    onDelete() {
+        this.mouse?.remove()
+        this.mouse = null;
     }
 }

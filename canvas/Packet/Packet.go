@@ -30,6 +30,12 @@ func parsePacketByType(message []byte) (pck ClientPacket, newMessage []byte, err
 		return CreateClientSetStrokeSizePacket(message)
 	case ClientSetStrokeColor:
 		return CreateClientSetStrokeColorPacket(message)
+	case ClientStartSharingCursor:
+		return CreateClientStartSharingCursorPacket(message)
+	case ClientUpdateCursorPosition:
+		return CreateClientUpdateCursorPositionPacket(message)
+	case ClientStopSharingCursor:
+		return CreateClientStopSharingCursorPacket(message)
 	default:
 		err = errors.New("parsePacketByType no packet found")
 	}

@@ -447,6 +447,25 @@ class Root {
         var _a;
         (_a = this.users.findUserByID(pck.userID)) === null || _a === void 0 ? void 0 : _a.stopSharingCursor();
     }
+    exportSVG() {
+        console.log("export svg");
+        this.users.hideCursors();
+        this.background.hide();
+        // @ts-ignore
+        const svg = paper.project.exportSVG({ bounds: 'content', asString: true });
+        const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        document.body.appendChild(a);
+        a.setAttribute("style", "display: none");
+        a.href = url;
+        a.download = "Canvas.svg";
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        this.users.showCursors();
+        this.background.show();
+    }
 }
 class SelectionManager {
     constructor(users, ws, brushMenu) {
@@ -817,6 +836,16 @@ class User {
         (_a = this.mouse) === null || _a === void 0 ? void 0 : _a.remove();
         this.mouse = null;
     }
+    hideCursor() {
+        if (this.mouse) {
+            this.mouse.visible = false;
+        }
+    }
+    showCursor() {
+        if (this.mouse) {
+            this.mouse.visible = true;
+        }
+    }
 }
 class Users {
     constructor(ws) {
@@ -885,6 +914,12 @@ class Users {
         }
         u.onDelete();
         nullUser.setOwner(lines);
+    }
+    hideCursors() {
+        this.users.forEach(u => u.hideCursor());
+    }
+    showCursors() {
+        this.users.forEach(u => u.showCursor());
     }
 }
 // helper function here
@@ -1353,6 +1388,12 @@ class Background {
             this.paths.push(path);
         }
     }
+    hide() {
+        this.paths.forEach(path => path.visible = false);
+    }
+    show() {
+        this.paths.forEach(path => path.visible = true);
+    }
 }
 class BrushMenu {
     constructor(uiManager) {
@@ -1461,12 +1502,9 @@ class UIManager {
         this.selMode.on("click", () => this.setModeSelect());
         this.moveMode.on("click", () => this.setModeMove());
         this.shareCursorMode.on("click", () => this.setModeShareCursor());
-        $("#UIDeleteSelectionButton").on("click", () => {
-            this.root.deleteSelection();
-        });
-        $("#UIUndoButton").on("click", () => {
-            this.root.undo();
-        });
+        $("#UIDeleteSelectionButton").on("click", () => this.root.deleteSelection());
+        $("#UIUndoButton").on("click", () => this.root.undo());
+        $("#UISaveButton").on("click", () => this.root.exportSVG());
     }
     getStrokeWidth() {
         return this.brushMenu.getStrokeWidth();
@@ -1529,23 +1567,29 @@ class CopyLine {
 }
 class DrawLine {
     constructor(path, lineID, userID, rawPath) {
+        this.moved = new paper.Point(0, 0);
         this.path = path;
         this.lineID = lineID;
         this.userID = userID;
         this.rawPath = rawPath;
     }
     UpdateUserID(userID) {
-        return new DrawLine(this.path, this.lineID, userID, this.rawPath);
+        return new DrawLine(this.path, this.lineID, userID, this.calculateRawPath());
     }
     updateLineID(lineID) {
-        return new DrawLine(this.path, lineID, this.userID, this.rawPath);
+        return new DrawLine(this.path, lineID, this.userID, this.calculateRawPath());
     }
     addPoint(point) {
         this.path.add(point);
         this.rawPath.push(point);
     }
+    calculateRawPath() {
+        const newRawPath = [];
+        this.rawPath.forEach(p => newRawPath.push(p.add(this.moved)));
+        return newRawPath;
+    }
     copy() {
-        return new CopyLine(this.rawPath, this.path.strokeColor, this.path.strokeWidth);
+        return new CopyLine(this.calculateRawPath(), this.path.strokeColor, this.path.strokeWidth);
     }
     isInside(rect) {
         return this.path.isInside(rect);
@@ -1557,6 +1601,7 @@ class DrawLine {
         this.path.selected = value;
     }
     moveDelta(delta) {
+        this.moved = this.moved.add(delta);
         this.path.position = this.path.position.add(delta);
     }
     strokeWidth() {

@@ -123,4 +123,16 @@ class User {
         this.mouse?.remove()
         this.mouse = null;
     }
+
+    hideCursor() {
+        if (this.mouse) {
+            this.mouse.visible = false
+        }
+    }
+
+    showCursor() {
+        if (this.mouse) {
+            this.mouse.visible = true
+        }
+    }
 }

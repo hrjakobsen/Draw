@@ -26,13 +26,11 @@ class UIManager {
 
         this.shareCursorMode.on("click", () => this.setModeShareCursor())
 
-        $("#UIDeleteSelectionButton").on("click", () => {
-            this.root.deleteSelection()
-        })
+        $("#UIDeleteSelectionButton").on("click", () => this.root.deleteSelection())
 
-        $("#UIUndoButton").on("click", () => {
-            this.root.undo()
-        })
+        $("#UIUndoButton").on("click", () => this.root.undo())
+
+        $("#UISaveButton").on("click", () => this.root.exportSVG())
 
     }
 

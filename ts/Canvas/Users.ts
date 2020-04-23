@@ -83,4 +83,12 @@ class Users {
 
         nullUser.setOwner(lines)
     }
+
+    hideCursors() {
+        this.users.forEach( u => u.hideCursor())
+    }
+
+    showCursors() {
+        this.users.forEach( u => u.showCursor())
+    }
 }

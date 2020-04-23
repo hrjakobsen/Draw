@@ -5,6 +5,7 @@ class CopyLine {
     readonly strokeColor: paper.Color;
     readonly strokeWidth: number;
 
+
     constructor(rawPath: paper.Point[], strokeColor: paper.Color, strokeWidth: number) {
         this.rawPath = rawPath;
         this.strokeColor = strokeColor;
@@ -17,6 +18,7 @@ class DrawLine {
     readonly lineID: number;
     readonly userID: number;
     private readonly rawPath: paper.Point[];
+    private moved = new paper.Point(0,0)
 
     constructor(path: paper.Path, lineID: number, userID: number, rawPath: paper.Point[]) {
         this.path = path;
@@ -26,11 +28,11 @@ class DrawLine {
     }
 
     UpdateUserID(userID: number): DrawLine {
-        return new DrawLine(this.path, this.lineID, userID, this.rawPath)
+        return new DrawLine(this.path, this.lineID, userID, this.calculateRawPath())
     }
 
     updateLineID(lineID: number): DrawLine {
-        return new DrawLine(this.path, lineID, this.userID, this.rawPath)
+        return new DrawLine(this.path, lineID, this.userID, this.calculateRawPath())
     }
 
     addPoint(point: paper.Point) {
@@ -38,8 +40,14 @@ class DrawLine {
         this.rawPath.push(point)
     }
 
+    private calculateRawPath(): paper.Point[] {
+        const newRawPath: paper.Point[] = []
+        this.rawPath.forEach( p => newRawPath.push(p.add(this.moved)))
+        return newRawPath
+    }
+
     copy(): CopyLine {
-        return new CopyLine(this.rawPath, <Color>this.path.strokeColor, this.path.strokeWidth)
+        return new CopyLine(this.calculateRawPath(), <Color>this.path.strokeColor, this.path.strokeWidth)
     }
 
     isInside(rect: paper.Rectangle): boolean {
@@ -55,6 +63,7 @@ class DrawLine {
     }
 
     moveDelta(delta: paper.Point) {
+        this.moved = this.moved.add(delta)
         this.path.position = this.path.position.add(delta)
     }
 

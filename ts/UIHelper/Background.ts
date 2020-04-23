@@ -37,4 +37,12 @@ class Background {
             this.paths.push(path)
         }
     }
+
+    hide() {
+        this.paths.forEach( path => path.visible = false )
+    }
+
+    show() {
+        this.paths.forEach( path => path.visible = true )
+    }
 }

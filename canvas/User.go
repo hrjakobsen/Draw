@@ -377,8 +377,8 @@ func (u *User) save(canvasID int) {
 	}
 }
 
-func (c *User) id() uint8 {
-	return c.userID
+func (u *User) id() uint8 {
+	return u.userID
 }
 
 func (u *User) sharingCursor(b bool) {

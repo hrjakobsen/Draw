@@ -415,4 +415,26 @@ class Root {
     private handleStopSharingCursor(pck: ServerStopSharingCursorPacket) {
         this.users.findUserByID(pck.userID)?.stopSharingCursor()
     }
+
+    exportSVG() {
+        console.log("export svg")
+        this.users.hideCursors()
+        this.background.hide()
+        // @ts-ignore
+        const svg = <string>paper.project.exportSVG({bounds: 'content', asString: true})
+        const blob = new Blob([svg], {type: "image/svg+xml;charset=utf-8"});
+        const url = window.URL.createObjectURL(blob)
+
+        const a = document.createElement("a");
+        document.body.appendChild(a);
+        a.setAttribute("style", "display: none");
+        a.href = url;
+        a.download = "Canvas.svg";
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a)
+
+        this.users.showCursors()
+        this.background.show()
+    }
 }

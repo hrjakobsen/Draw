@@ -6,7 +6,6 @@ import (
 	"github.com/MikkelKettunen/Draw/canvas/Packet"
 	"github.com/MikkelKettunen/Draw/canvas/util"
 	"github.com/gorilla/websocket"
-	"time"
 )
 
 type User struct {
@@ -274,7 +273,6 @@ func (u *User) sendInformationTo(newUser *User) {
 	go func() {
 		for _, pck := range queue {
 			newUser.sendPacket(pck)
-			time.Sleep(time.Millisecond)
 		}
 	}()
 }

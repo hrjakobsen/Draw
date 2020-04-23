@@ -5,7 +5,6 @@ import (
 	"github.com/MikkelKettunen/Draw/Database"
 	"github.com/MikkelKettunen/Draw/canvas/Packet"
 	"github.com/MikkelKettunen/Draw/canvas/util"
-	"time"
 )
 
 type NullUser struct {
@@ -162,10 +161,8 @@ func (u *NullUser) sendLinesTo(user *User) {
 
 	// now we're not blocking the main thread
 	go func() {
-		time.Sleep(time.Millisecond * 10)
 		for _, pck := range queue {
 			user.sendPacket(pck)
-			time.Sleep(time.Millisecond)
 		}
 	}()
 }

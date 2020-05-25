@@ -1436,7 +1436,7 @@ class BrushMenu {
             this.onSetColor(this.selectedColor, this.selectBlueButton);
         });
         this.selectGreenButton.on("click", () => {
-            this.selectedColor = new paper.Color(0, 255, 0);
+            this.selectedColor = new paper.Color(0, 128, 0);
             this.onSetColor(this.selectedColor, this.selectGreenButton);
         });
         this.selectRedButton.on("click", () => {
